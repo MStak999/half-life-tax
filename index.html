@@ -1,0 +1,1131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Half-Life Tax: Interactive Agent Economics Model</title>
+<meta name="description" content="Interactive back-of-the-envelope calculator exploring how AI agent reliability decay creates an exponential cost wall.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,300;8..60,400;8..60,600;8..60,700&family=JetBrains+Mono:wght@400;500;600&family=Source+Sans+3:wght@300;400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+  :root {
+    --bg: #faf8f4;
+    --bg-card: #ffffff;
+    --bg-input: #f3f0ea;
+    --text: #2c2a25;
+    --text-muted: #6b6860;
+    --text-light: #9a958a;
+    --accent: #c44d2b;
+    --accent-light: #e8c4b8;
+    --accent-bg: #fdf0ec;
+    --green: #2d7a4f;
+    --green-bg: #e8f5ee;
+    --blue: #3568a8;
+    --blue-bg: #eaf0f8;
+    --border: #e2ddd4;
+    --border-dark: #c8c2b6;
+    --shadow: 0 1px 3px rgba(44, 42, 37, 0.06), 0 1px 2px rgba(44, 42, 37, 0.04);
+    --shadow-lg: 0 4px 12px rgba(44, 42, 37, 0.08), 0 2px 4px rgba(44, 42, 37, 0.04);
+    --radius: 6px;
+    --serif: 'Source Serif 4', Georgia, serif;
+    --sans: 'Source Sans 3', -apple-system, sans-serif;
+    --mono: 'JetBrains Mono', 'Consolas', monospace;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: var(--sans);
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+    font-size: 15px;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .container {
+    max-width: 920px;
+    margin: 0 auto;
+    padding: 0 24px;
+  }
+
+  /* Header */
+  header {
+    padding: 48px 0 32px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 36px;
+  }
+
+  header h1 {
+    font-family: var(--serif);
+    font-size: 32px;
+    font-weight: 700;
+    line-height: 1.2;
+    letter-spacing: -0.5px;
+    margin-bottom: 12px;
+    color: var(--text);
+  }
+
+  header p {
+    font-size: 15px;
+    color: var(--text-muted);
+    max-width: 680px;
+    line-height: 1.65;
+  }
+
+  header a {
+    color: var(--accent);
+    text-decoration: none;
+    border-bottom: 1px solid var(--accent-light);
+  }
+  header a:hover { border-bottom-color: var(--accent); }
+
+  /* Sections */
+  .section {
+    margin-bottom: 40px;
+  }
+
+  .section-label {
+    font-family: var(--mono);
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: var(--text-light);
+    margin-bottom: 10px;
+  }
+
+  .section h2 {
+    font-family: var(--serif);
+    font-size: 22px;
+    font-weight: 600;
+    margin-bottom: 8px;
+  }
+
+  .section > p {
+    color: var(--text-muted);
+    font-size: 14px;
+    margin-bottom: 20px;
+    max-width: 640px;
+  }
+
+  /* Parameter controls */
+  .params-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+
+  @media (max-width: 640px) {
+    .params-grid { grid-template-columns: 1fr; }
+  }
+
+  .param-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 16px 18px;
+    box-shadow: var(--shadow);
+  }
+
+  .param-card label {
+    display: block;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text);
+    margin-bottom: 10px;
+  }
+
+  .param-card label .unit {
+    font-weight: 400;
+    color: var(--text-light);
+    font-size: 12px;
+  }
+
+  .slider-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .slider-row input[type="range"] {
+    flex: 1;
+    -webkit-appearance: none;
+    appearance: none;
+    height: 4px;
+    background: var(--border);
+    border-radius: 2px;
+    outline: none;
+  }
+
+  .slider-row input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: var(--accent);
+    cursor: pointer;
+    border: 2px solid white;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+  }
+
+  .slider-row input[type="range"]::-moz-range-thumb {
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: var(--accent);
+    cursor: pointer;
+    border: 2px solid white;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+  }
+
+  .slider-value {
+    font-family: var(--mono);
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--accent);
+    min-width: 56px;
+    text-align: right;
+  }
+
+  .param-hint {
+    font-size: 11.5px;
+    color: var(--text-light);
+    margin-top: 6px;
+    line-height: 1.45;
+  }
+
+  /* Key equation */
+  .equation-box {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--accent);
+    border-radius: var(--radius);
+    padding: 18px 22px;
+    margin-bottom: 24px;
+    box-shadow: var(--shadow);
+    font-family: var(--mono);
+    font-size: 13px;
+    line-height: 2;
+    color: var(--text);
+    overflow-x: auto;
+  }
+
+  .equation-box .eq-label {
+    color: var(--text-light);
+    font-size: 11px;
+  }
+
+  .equation-box .eq-accent {
+    color: var(--accent);
+    font-weight: 600;
+  }
+
+  /* Results table */
+  .table-wrap {
+    overflow-x: auto;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    background: var(--bg-card);
+    margin-bottom: 10px;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+  }
+
+  thead th {
+    background: var(--bg-input);
+    font-weight: 600;
+    font-size: 11.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--text-muted);
+    padding: 10px 12px;
+    text-align: right;
+    white-space: nowrap;
+    border-bottom: 1px solid var(--border);
+  }
+
+  thead th:first-child {
+    text-align: left;
+    padding-left: 16px;
+  }
+
+  tbody td {
+    padding: 9px 12px;
+    text-align: right;
+    border-bottom: 1px solid var(--border);
+    font-family: var(--mono);
+    font-size: 12.5px;
+    white-space: nowrap;
+  }
+
+  tbody td:first-child {
+    text-align: left;
+    font-family: var(--sans);
+    font-weight: 500;
+    font-size: 13px;
+    padding-left: 16px;
+  }
+
+  tbody tr:last-child td { border-bottom: none; }
+
+  tbody tr:hover { background: var(--bg-input); }
+
+  .cell-green { color: var(--green); font-weight: 600; }
+  .cell-amber { color: #b8860b; font-weight: 600; }
+  .cell-red { color: var(--accent); font-weight: 600; }
+
+  .crossover-row td {
+    background: var(--accent-bg);
+    border-top: 2px solid var(--accent);
+    border-bottom: 2px solid var(--accent);
+  }
+
+  .table-note {
+    font-size: 12px;
+    color: var(--text-light);
+    margin-top: 6px;
+    margin-bottom: 20px;
+  }
+
+  /* Chart */
+  .chart-container {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 20px;
+    margin-bottom: 10px;
+    position: relative;
+  }
+
+  .chart-container canvas {
+    max-height: 360px;
+  }
+
+  /* Sensitivity matrix */
+  .sensitivity-table th,
+  .sensitivity-table td {
+    text-align: center;
+    padding: 8px 10px;
+    font-size: 12px;
+  }
+
+  .sensitivity-table th {
+    text-align: center;
+    padding-left: 12px;
+  }
+
+  .sensitivity-table td:first-child {
+    text-align: right;
+    font-family: var(--mono);
+    font-weight: 500;
+    padding-right: 14px;
+    background: var(--bg-input);
+  }
+
+  .sensitivity-table thead th:first-child {
+    text-align: right;
+  }
+
+  /* Decomposition section */
+  .decomp-controls {
+    display: flex;
+    gap: 16px;
+    align-items: end;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+  }
+
+  .decomp-control {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 14px 16px;
+    box-shadow: var(--shadow);
+    flex: 1;
+    min-width: 180px;
+  }
+
+  .decomp-control label {
+    display: block;
+    font-size: 12px;
+    font-weight: 500;
+    margin-bottom: 8px;
+  }
+
+  .decomp-results {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 14px;
+    margin-bottom: 16px;
+  }
+
+  @media (max-width: 640px) {
+    .decomp-results { grid-template-columns: 1fr; }
+  }
+
+  .metric-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 16px 18px;
+    box-shadow: var(--shadow);
+    text-align: center;
+  }
+
+  .metric-card .metric-label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--text-light);
+    margin-bottom: 4px;
+  }
+
+  .metric-card .metric-value {
+    font-family: var(--mono);
+    font-size: 22px;
+    font-weight: 600;
+  }
+
+  .metric-card .metric-sub {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-top: 2px;
+  }
+
+  /* Insight callout */
+  .insight {
+    background: var(--accent-bg);
+    border: 1px solid var(--accent-light);
+    border-radius: var(--radius);
+    padding: 16px 20px;
+    margin-top: 16px;
+    margin-bottom: 24px;
+  }
+
+  .insight p {
+    font-size: 14px;
+    color: var(--text);
+    line-height: 1.6;
+  }
+
+  .insight strong { color: var(--accent); }
+
+  /* Tabs */
+  .tabs {
+    display: flex;
+    gap: 0;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 24px;
+  }
+
+  .tab {
+    padding: 10px 20px;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-muted);
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    transition: all 0.15s;
+    background: none;
+    border-top: none;
+    border-left: none;
+    border-right: none;
+    font-family: var(--sans);
+  }
+
+  .tab:hover { color: var(--text); }
+
+  .tab.active {
+    color: var(--accent);
+    border-bottom-color: var(--accent);
+    font-weight: 600;
+  }
+
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
+
+  /* Footer */
+  footer {
+    border-top: 1px solid var(--border);
+    padding: 24px 0 40px;
+    margin-top: 24px;
+    font-size: 13px;
+    color: var(--text-light);
+    line-height: 1.6;
+  }
+
+  footer a {
+    color: var(--text-muted);
+    text-decoration: none;
+    border-bottom: 1px solid var(--border);
+  }
+
+  /* Divider */
+  .divider {
+    height: 1px;
+    background: var(--border);
+    margin: 36px 0;
+  }
+
+  /* Preset buttons */
+  .presets {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+  }
+
+  .preset-btn {
+    font-family: var(--sans);
+    font-size: 12px;
+    font-weight: 500;
+    padding: 5px 12px;
+    border: 1px solid var(--border);
+    border-radius: 100px;
+    background: var(--bg-card);
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  .preset-btn:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+    background: var(--accent-bg);
+  }
+
+  .preset-btn.active {
+    background: var(--accent);
+    color: white;
+    border-color: var(--accent);
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <header>
+    <h1>The Half-Life Tax</h1>
+    <p>An interactive model of AI agent economics. Agent cost per successful outcome scales exponentially with task length, while human cost scales linearly. Adjust the parameters below to explore why the half-life of agent reliability is the only variable that truly matters. Based on <a href="https://www.tobyord.com/writing/half-life">Ord's half-life analysis</a> and <a href="https://metr.org/blog/2025-03-19-measuring-ai-ability-to-complete-long-tasks/">METR's empirical data</a>.</p>
+  </header>
+
+  <!-- Parameters -->
+  <div class="section">
+    <div class="section-label">Parameters</div>
+    <h2>Model Inputs</h2>
+    <p>Adjust these to match your scenario. The model recomputes instantly.</p>
+
+    <div class="presets">
+      <button class="preset-btn active" onclick="applyPreset('base')">Base case</button>
+      <button class="preset-btn" onclick="applyPreset('cheap')">Cheap model</button>
+      <button class="preset-btn" onclick="applyPreset('frontier')">Frontier model</button>
+      <button class="preset-btn" onclick="applyPreset('future')">Optimistic 2027</button>
+    </div>
+
+    <div class="params-grid">
+      <div class="param-card">
+        <label>Cost per agent step <span class="unit">(USD)</span></label>
+        <div class="slider-row">
+          <input type="range" id="costPerStep" min="0.005" max="1.0" step="0.005" value="0.22">
+          <span class="slider-value" id="costPerStep-val">$0.22</span>
+        </div>
+        <div class="param-hint">Average cost of one model call including context. $0.02 for cheap models, $0.50+ for frontier with long context.</div>
+      </div>
+
+      <div class="param-card">
+        <label>Steps per hour <span class="unit">(of human-equivalent work)</span></label>
+        <div class="slider-row">
+          <input type="range" id="stepsPerHr" min="20" max="200" step="5" value="80">
+          <span class="slider-value" id="stepsPerHr-val">80</span>
+        </div>
+        <div class="param-hint">Agent actions per hour of equivalent human work. 50 for complex reasoning, 120+ for routine tasks.</div>
+      </div>
+
+      <div class="param-card">
+        <label>Half-life <span class="unit">(hours)</span></label>
+        <div class="slider-row">
+          <input type="range" id="halfLife" min="0.5" max="80" step="0.5" value="5">
+          <span class="slider-value" id="halfLife-val">5h</span>
+        </div>
+        <div class="param-hint">Task length at which the agent succeeds 50% of the time. METR data: ~2.5-5h for frontier models (2025).</div>
+      </div>
+
+      <div class="param-card">
+        <label>Human hourly rate <span class="unit">(USD, fully loaded)</span></label>
+        <div class="slider-row">
+          <input type="range" id="humanRate" min="30" max="400" step="5" value="150">
+          <span class="slider-value" id="humanRate-val">$150</span>
+        </div>
+        <div class="param-hint">Salary + benefits + overhead. $100-200 typical for skilled knowledge workers.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Key equation -->
+  <div class="equation-box">
+    <span class="eq-label">// Key relationship</span><br>
+    P(success) = 0.5 ^ (task_hours / <span class="eq-accent">half_life</span>)<br>
+    E[attempts] = 1 / P(success) = <span class="eq-accent">2 ^ (task_hours / half_life)</span><br>
+    Agent cost = steps × $/step × <span class="eq-accent">2 ^ (task_hours / half_life)</span><br>
+    Human cost = hourly_rate × task_hours &nbsp;<span class="eq-label">// linear</span>
+  </div>
+
+  <!-- Tabs -->
+  <div class="tabs">
+    <button class="tab active" data-tab="comparison">Cost comparison</button>
+    <button class="tab" data-tab="sensitivity">Sensitivity</button>
+    <button class="tab" data-tab="decomposition">Task decomposition</button>
+  </div>
+
+  <!-- Tab 1: Cost Comparison -->
+  <div class="tab-content active" id="tab-comparison">
+    <div class="section">
+      <div class="section-label">Results</div>
+      <h2>Agent vs Human Cost by Task Length</h2>
+      <p>The highlighted row marks where agent cost per success overtakes human cost. Note the exponential blowup beyond this point.</p>
+
+      <div class="chart-container">
+        <canvas id="mainChart"></canvas>
+      </div>
+      <div class="table-note">Logarithmic scale. The divergence after the crossover is the exponential at work.</div>
+
+      <div class="table-wrap">
+        <table id="mainTable">
+          <thead>
+            <tr>
+              <th>Task length</th>
+              <th>Steps</th>
+              <th>$/attempt</th>
+              <th>P(success)</th>
+              <th>E[attempts]</th>
+              <th>Agent cost</th>
+              <th>Human cost</th>
+              <th>Ratio</th>
+            </tr>
+          </thead>
+          <tbody id="mainTableBody"></tbody>
+        </table>
+      </div>
+      <div class="table-note">Ratio = agent cost / human cost. Values below 1 favour the agent; above 1 favour the human.</div>
+
+      <div class="insight" id="mainInsight"></div>
+    </div>
+  </div>
+
+  <!-- Tab 2: Sensitivity -->
+  <div class="tab-content" id="tab-sensitivity">
+    <div class="section">
+      <div class="section-label">Sensitivity analysis</div>
+      <h2>Half-life vs Cost per Step</h2>
+      <p>For a fixed task length, how does the agent-to-human cost ratio change as you vary half-life and cost per step? The half-life dominates because it acts on the exponent.</p>
+
+      <div class="decomp-controls">
+        <div class="decomp-control">
+          <label>Task length for sensitivity analysis</label>
+          <div class="slider-row">
+            <input type="range" id="sensTaskHours" min="1" max="40" step="1" value="8">
+            <span class="slider-value" id="sensTaskHours-val">8h</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="table-wrap">
+        <table class="sensitivity-table" id="sensTable">
+          <thead id="sensTableHead"></thead>
+          <tbody id="sensTableBody"></tbody>
+        </table>
+      </div>
+      <div class="table-note">Values are agent cost / human cost. Green: agent cheaper. Red: human cheaper. Each cell uses the current steps/hr and human rate settings.</div>
+
+      <div class="insight" id="sensInsight"></div>
+    </div>
+  </div>
+
+  <!-- Tab 3: Decomposition -->
+  <div class="tab-content" id="tab-decomposition">
+    <div class="section">
+      <div class="section-label">Task decomposition</div>
+      <h2>Can You Break It Up?</h2>
+      <p>Splitting a long task into shorter chunks keeps each chunk in the high-success zone. But each handoff costs coordination overhead and loses context.</p>
+
+      <div class="decomp-controls">
+        <div class="decomp-control">
+          <label>Total task length (hours)</label>
+          <div class="slider-row">
+            <input type="range" id="decompTotal" min="4" max="80" step="1" value="24">
+            <span class="slider-value" id="decompTotal-val">24h</span>
+          </div>
+        </div>
+        <div class="decomp-control">
+          <label>Number of chunks</label>
+          <div class="slider-row">
+            <input type="range" id="decompChunks" min="1" max="24" step="1" value="1">
+            <span class="slider-value" id="decompChunks-val">1</span>
+          </div>
+        </div>
+        <div class="decomp-control">
+          <label>Handoff overhead <span class="unit">(% of human hr rate)</span></label>
+          <div class="slider-row">
+            <input type="range" id="decompOverhead" min="0" max="40" step="1" value="10">
+            <span class="slider-value" id="decompOverhead-val">10%</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="decomp-results" id="decompResults"></div>
+
+      <div class="chart-container">
+        <canvas id="decompChart"></canvas>
+      </div>
+      <div class="table-note">Shows total agent cost as you vary the number of chunks. The minimum is the sweet spot balancing reliability gains against coordination overhead.</div>
+
+      <div class="insight" id="decompInsight"></div>
+    </div>
+  </div>
+
+  <footer>
+    <p>Interactive companion to <em>The Half-Life Tax: A BOTEC on Why Agent Economics Hit an Exponential Wall</em>. Model based on <a href="https://www.tobyord.com/writing/half-life">Toby Ord's half-life analysis</a>, <a href="https://metr.org/blog/2025-03-19-measuring-ai-ability-to-complete-long-tasks/">METR's task-length data</a>, and OECD scenarios from the International AI Safety Report 2026. This is a simplified back-of-the-envelope model; see the post for caveats.</p>
+  </footer>
+</div>
+
+<script>
+// ── State ──
+const params = {
+  costPerStep: 0.22,
+  stepsPerHr: 80,
+  halfLife: 5,
+  humanRate: 150,
+};
+
+const presets = {
+  base:     { costPerStep: 0.22, stepsPerHr: 80,  halfLife: 5,  humanRate: 150 },
+  cheap:    { costPerStep: 0.02, stepsPerHr: 100, halfLife: 3,  humanRate: 150 },
+  frontier: { costPerStep: 0.55, stepsPerHr: 60,  halfLife: 5,  humanRate: 150 },
+  future:   { costPerStep: 0.05, stepsPerHr: 100, halfLife: 12, humanRate: 150 },
+};
+
+// ── Utility ──
+function fmt$(v) {
+  if (v >= 1e9) return '$' + (v / 1e9).toFixed(1) + 'B';
+  if (v >= 1e6) return '$' + (v / 1e6).toFixed(1) + 'M';
+  if (v >= 1e4) return '$' + (v / 1e3).toFixed(1) + 'K';
+  if (v >= 100) return '$' + v.toFixed(0);
+  if (v >= 1) return '$' + v.toFixed(2);
+  return '$' + v.toFixed(3);
+}
+
+function fmtPct(v) {
+  if (v >= 0.1) return (v * 100).toFixed(1) + '%';
+  if (v >= 0.001) return (v * 100).toFixed(2) + '%';
+  if (v >= 0.00001) return (v * 100).toFixed(4) + '%';
+  return '~0%';
+}
+
+function fmtRatio(v) {
+  if (v >= 1000) return v.toFixed(0) + '×';
+  if (v >= 10) return v.toFixed(1) + '×';
+  return v.toFixed(2) + '×';
+}
+
+function fmtAttempts(v) {
+  if (v >= 1e6) return (v / 1e6).toFixed(1) + 'M';
+  if (v >= 1e3) return (v / 1e3).toFixed(1) + 'K';
+  if (v >= 10) return v.toFixed(0);
+  return v.toFixed(1);
+}
+
+function contextMultiplier(steps) {
+  // Modelling growing context cost: 1.0 at 20 steps, up to ~1.5 at 6400 steps
+  return 1 + 0.5 * Math.min(1, Math.log(steps / 20 + 1) / Math.log(320));
+}
+
+function computeRow(taskHours) {
+  const steps = params.stepsPerHr * taskHours;
+  const cm = contextMultiplier(steps);
+  const costPerAttempt = steps * params.costPerStep * cm;
+  const pSuccess = Math.pow(0.5, taskHours / params.halfLife);
+  const eAttempts = 1 / pSuccess;
+  const agentCost = costPerAttempt * eAttempts;
+  const humanCost = params.humanRate * taskHours;
+  const ratio = agentCost / humanCost;
+  return { taskHours, steps, costPerAttempt, pSuccess, eAttempts, agentCost, humanCost, ratio };
+}
+
+// ── Rendering ──
+const taskHoursList = [0.25, 0.5, 1, 2, 4, 8, 16, 24, 40, 80];
+const taskLabels = ['15 min', '30 min', '1h', '2h', '4h', '8h', '16h', '24h', '1 week', '2 weeks'];
+
+let mainChart, decompChart;
+
+function ratioClass(r) {
+  if (r < 0.6) return 'cell-green';
+  if (r < 1.2) return 'cell-amber';
+  return 'cell-red';
+}
+
+function renderMainTable() {
+  const tbody = document.getElementById('mainTableBody');
+  const rows = taskHoursList.map(h => computeRow(h));
+
+  // Find crossover
+  let crossIdx = rows.findIndex(r => r.ratio >= 1);
+
+  tbody.innerHTML = rows.map((r, i) => {
+    const cls = i === crossIdx ? ' class="crossover-row"' : '';
+    return `<tr${cls}>
+      <td>${taskLabels[i]}</td>
+      <td>${r.steps.toLocaleString()}</td>
+      <td>${fmt$(r.costPerAttempt)}</td>
+      <td>${fmtPct(r.pSuccess)}</td>
+      <td>${fmtAttempts(r.eAttempts)}</td>
+      <td>${fmt$(r.agentCost)}</td>
+      <td>${fmt$(r.humanCost)}</td>
+      <td class="${ratioClass(r.ratio)}">${fmtRatio(r.ratio)}</td>
+    </tr>`;
+  }).join('');
+
+  // Insight
+  const insight = document.getElementById('mainInsight');
+  if (crossIdx === -1) {
+    insight.innerHTML = `<p>With a <strong>${params.halfLife}h half-life</strong>, agents remain cheaper than humans across all task lengths shown. This is the economic picture that justifies massive AI infrastructure investment.</p>`;
+  } else if (crossIdx === 0) {
+    insight.innerHTML = `<p>With a <strong>${params.halfLife}h half-life</strong>, agents are already more expensive than humans even for 15-minute tasks. The reliability is too low to be economical at any task length with these cost parameters.</p>`;
+  } else {
+    const crossHours = taskHoursList[crossIdx];
+    const label = taskLabels[crossIdx];
+    insight.innerHTML = `<p>The crossover hits at roughly <strong>${label}</strong>. Below this, agents are ${fmtRatio(1 / rows[crossIdx - 1].ratio).replace('×', '')}x cheaper. Above it, costs explode: at ${taskLabels[Math.min(crossIdx + 2, rows.length - 1)]}, the agent costs <strong>${fmtRatio(rows[Math.min(crossIdx + 2, rows.length - 1)].ratio)}</strong> the human rate. This is the half-life tax.</p>`;
+  }
+}
+
+function renderMainChart() {
+  const ctx = document.getElementById('mainChart').getContext('2d');
+  const chartHours = [];
+  for (let h = 0.25; h <= 80; h *= 1.15) chartHours.push(h);
+  chartHours.push(80);
+
+  const agentData = chartHours.map(h => {
+    const r = computeRow(h);
+    return { x: h, y: r.agentCost };
+  });
+  const humanData = chartHours.map(h => ({ x: h, y: params.humanRate * h }));
+
+  if (mainChart) mainChart.destroy();
+
+  mainChart = new Chart(ctx, {
+    type: 'line',
+    data: {
+      datasets: [
+        {
+          label: 'Agent cost per success',
+          data: agentData,
+          borderColor: '#c44d2b',
+          backgroundColor: 'rgba(196, 77, 43, 0.08)',
+          fill: true,
+          tension: 0.35,
+          pointRadius: 0,
+          borderWidth: 2.5,
+        },
+        {
+          label: 'Human cost',
+          data: humanData,
+          borderColor: '#3568a8',
+          backgroundColor: 'rgba(53, 104, 168, 0.05)',
+          fill: true,
+          tension: 0,
+          pointRadius: 0,
+          borderWidth: 2.5,
+          borderDash: [6, 3],
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: true,
+      aspectRatio: 2.2,
+      interaction: { mode: 'index', intersect: false },
+      scales: {
+        x: {
+          type: 'logarithmic',
+          title: { display: true, text: 'Task length (hours)', font: { family: "'Source Sans 3'", size: 12 }, color: '#6b6860' },
+          ticks: {
+            callback: function(val) {
+              if ([0.25, 0.5, 1, 2, 4, 8, 16, 24, 40, 80].includes(val)) {
+                if (val < 1) return (val * 60) + 'm';
+                return val + 'h';
+              }
+              return '';
+            },
+            font: { family: "'JetBrains Mono'", size: 10 },
+            color: '#9a958a',
+          },
+          grid: { color: '#e2ddd4' },
+        },
+        y: {
+          type: 'logarithmic',
+          title: { display: true, text: 'Cost (USD)', font: { family: "'Source Sans 3'", size: 12 }, color: '#6b6860' },
+          ticks: {
+            callback: function(val) { return fmt$(val); },
+            font: { family: "'JetBrains Mono'", size: 10 },
+            color: '#9a958a',
+          },
+          grid: { color: '#e2ddd4' },
+        }
+      },
+      plugins: {
+        legend: {
+          labels: { font: { family: "'Source Sans 3'", size: 12 }, color: '#2c2a25', usePointStyle: true, pointStyle: 'line', padding: 20 },
+        },
+        tooltip: {
+          callbacks: {
+            title: (items) => {
+              const h = items[0].raw.x;
+              return h < 1 ? `${(h * 60).toFixed(0)} minutes` : `${h.toFixed(1)} hours`;
+            },
+            label: (item) => ` ${item.dataset.label}: ${fmt$(item.raw.y)}`
+          },
+          titleFont: { family: "'Source Sans 3'" },
+          bodyFont: { family: "'JetBrains Mono'", size: 12 },
+        }
+      }
+    }
+  });
+}
+
+function renderSensitivity() {
+  const taskH = parseFloat(document.getElementById('sensTaskHours').value);
+  const halfLives = [1, 2, 5, 12, 40];
+  const costs = [0.01, 0.05, 0.10, 0.25, 0.50, 1.00];
+
+  const thead = document.getElementById('sensTableHead');
+  thead.innerHTML = `<tr><th>Half-life ↓ &nbsp;$/step →</th>${costs.map(c => `<th>${fmt$(c)}</th>`).join('')}</tr>`;
+
+  const tbody = document.getElementById('sensTableBody');
+  tbody.innerHTML = halfLives.map(hl => {
+    const cells = costs.map(c => {
+      const steps = params.stepsPerHr * taskH;
+      const cm = contextMultiplier(steps);
+      const costAttempt = steps * c * cm;
+      const pS = Math.pow(0.5, taskH / hl);
+      const aCost = costAttempt / pS;
+      const hCost = params.humanRate * taskH;
+      const ratio = aCost / hCost;
+      const cls = ratioClass(ratio);
+      return `<td class="${cls}">${fmtRatio(ratio)}</td>`;
+    }).join('');
+    return `<tr><td>${hl}h</td>${cells}</tr>`;
+  }).join('');
+
+  // Insight
+  const midCostIdx = 3; // $0.25
+  const cheapCostIdx = 0; // $0.01
+  const r_hl1 = (() => { const s = params.stepsPerHr * taskH; const cm = contextMultiplier(s); return (s * costs[midCostIdx] * cm) / Math.pow(0.5, taskH / 1) / (params.humanRate * taskH); })();
+  const r_hl5 = (() => { const s = params.stepsPerHr * taskH; const cm = contextMultiplier(s); return (s * costs[midCostIdx] * cm) / Math.pow(0.5, taskH / 5) / (params.humanRate * taskH); })();
+  const r_cheap = (() => { const s = params.stepsPerHr * taskH; const cm = contextMultiplier(s); return (s * costs[cheapCostIdx] * cm) / Math.pow(0.5, taskH / 1) / (params.humanRate * taskH); })();
+
+  const hlImprovement = r_hl1 / r_hl5;
+  const costImprovement = r_hl1 / r_cheap;
+
+  document.getElementById('sensInsight').innerHTML = `<p>For a <strong>${taskH}h task</strong> at $0.25/step: improving half-life from 1h to 5h improves the ratio by <strong>${hlImprovement.toFixed(0)}×</strong>. Cutting cost from $0.25 to $0.01 (a 25× reduction) improves it by only <strong>${costImprovement.toFixed(0)}×</strong>. The half-life improvement is <strong>${(hlImprovement / costImprovement).toFixed(0)}× more valuable</strong> than the cost reduction.</p>`;
+}
+
+function renderDecomposition() {
+  const totalHours = parseFloat(document.getElementById('decompTotal').value);
+  const nChunks = parseInt(document.getElementById('decompChunks').value);
+  const overheadPct = parseFloat(document.getElementById('decompOverhead').value) / 100;
+
+  const chunkHours = totalHours / nChunks;
+  const handoffCost = (nChunks - 1) * overheadPct * params.humanRate;
+  const chunkRow = computeRow(chunkHours);
+  const totalAgentCost = chunkRow.agentCost * nChunks + handoffCost;
+  const humanCost = params.humanRate * totalHours;
+  const monoRow = computeRow(totalHours);
+
+  const results = document.getElementById('decompResults');
+  const monoRatio = monoRow.ratio;
+  const decompRatio = totalAgentCost / humanCost;
+
+  results.innerHTML = `
+    <div class="metric-card">
+      <div class="metric-label">Monolithic</div>
+      <div class="metric-value ${ratioClass(monoRatio)}">${fmtRatio(monoRatio)}</div>
+      <div class="metric-sub">${fmt$(monoRow.agentCost)} agent · ${fmt$(humanCost)} human</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-label">${nChunks} chunks × ${chunkHours.toFixed(1)}h</div>
+      <div class="metric-value ${ratioClass(decompRatio)}">${fmtRatio(decompRatio)}</div>
+      <div class="metric-sub">${fmt$(totalAgentCost)} agent · ${fmt$(humanCost)} human</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-label">Chunk P(success)</div>
+      <div class="metric-value" style="color: var(--blue)">${fmtPct(chunkRow.pSuccess)}</div>
+      <div class="metric-sub">${fmtAttempts(chunkRow.eAttempts)} attempts/chunk · ${fmt$(handoffCost)} overhead</div>
+    </div>
+  `;
+
+  // Decomp chart: cost vs number of chunks
+  const ctx = document.getElementById('decompChart').getContext('2d');
+  const maxChunks = Math.min(Math.ceil(totalHours / 0.5), 48);
+  const chunkRange = [];
+  for (let n = 1; n <= maxChunks; n++) chunkRange.push(n);
+
+  const decompData = chunkRange.map(n => {
+    const ch = totalHours / n;
+    const cr = computeRow(ch);
+    const ho = (n - 1) * overheadPct * params.humanRate;
+    return { x: n, y: cr.agentCost * n + ho };
+  });
+
+  if (decompChart) decompChart.destroy();
+
+  decompChart = new Chart(ctx, {
+    type: 'line',
+    data: {
+      datasets: [
+        {
+          label: 'Total agent cost',
+          data: decompData,
+          borderColor: '#c44d2b',
+          backgroundColor: 'rgba(196, 77, 43, 0.08)',
+          fill: true,
+          tension: 0.3,
+          pointRadius: 0,
+          borderWidth: 2.5,
+        },
+        {
+          label: 'Human cost',
+          data: chunkRange.map(n => ({ x: n, y: humanCost })),
+          borderColor: '#3568a8',
+          borderWidth: 2,
+          borderDash: [6, 3],
+          pointRadius: 0,
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: true,
+      aspectRatio: 2.2,
+      interaction: { mode: 'index', intersect: false },
+      scales: {
+        x: {
+          type: 'linear',
+          title: { display: true, text: 'Number of chunks', font: { family: "'Source Sans 3'", size: 12 }, color: '#6b6860' },
+          ticks: { font: { family: "'JetBrains Mono'", size: 10 }, color: '#9a958a' },
+          grid: { color: '#e2ddd4' },
+        },
+        y: {
+          type: 'logarithmic',
+          title: { display: true, text: 'Total cost (USD)', font: { family: "'Source Sans 3'", size: 12 }, color: '#6b6860' },
+          ticks: {
+            callback: function(val) { return fmt$(val); },
+            font: { family: "'JetBrains Mono'", size: 10 },
+            color: '#9a958a',
+          },
+          grid: { color: '#e2ddd4' },
+        }
+      },
+      plugins: {
+        legend: {
+          labels: { font: { family: "'Source Sans 3'", size: 12 }, color: '#2c2a25', usePointStyle: true, pointStyle: 'line', padding: 20 },
+        },
+        tooltip: {
+          callbacks: {
+            title: (items) => `${items[0].raw.x} chunk${items[0].raw.x > 1 ? 's' : ''} (${(totalHours / items[0].raw.x).toFixed(1)}h each)`,
+            label: (item) => ` ${item.dataset.label}: ${fmt$(item.raw.y)}`
+          },
+          titleFont: { family: "'Source Sans 3'" },
+          bodyFont: { family: "'JetBrains Mono'", size: 12 },
+        }
+      }
+    }
+  });
+
+  // Find optimal
+  let minCost = Infinity, optN = 1;
+  decompData.forEach(d => { if (d.y < minCost) { minCost = d.y; optN = d.x; } });
+  const optChunkH = totalHours / optN;
+  const optRatio = minCost / humanCost;
+
+  document.getElementById('decompInsight').innerHTML = `<p>For a <strong>${totalHours}h task</strong> with ${overheadPct * 100}% handoff overhead, the sweet spot is <strong>${optN} chunk${optN > 1 ? 's' : ''}</strong> of ~${optChunkH.toFixed(1)}h each, bringing the ratio to <strong>${fmtRatio(optRatio)}</strong>. ${optRatio < 1 ? 'Decomposition makes agents viable here.' : optRatio < 2 ? 'Close to break-even, but decomposition has limits.' : 'Even with optimal decomposition, agents are significantly more expensive than humans for this task length.'}</p>`;
+}
+
+function renderAll() {
+  renderMainTable();
+  renderMainChart();
+  renderSensitivity();
+  renderDecomposition();
+}
+
+// ── Event wiring ──
+function wireSlider(id, paramKey, formatter) {
+  const el = document.getElementById(id);
+  const valEl = document.getElementById(id + '-val');
+  el.addEventListener('input', () => {
+    const v = parseFloat(el.value);
+    if (paramKey) params[paramKey] = v;
+    valEl.textContent = formatter(v);
+    // Clear active preset
+    document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('active'));
+    renderAll();
+  });
+}
+
+wireSlider('costPerStep', 'costPerStep', v => '$' + v.toFixed(v < 0.1 ? 3 : 2));
+wireSlider('stepsPerHr', 'stepsPerHr', v => v.toFixed(0));
+wireSlider('halfLife', 'halfLife', v => v + 'h');
+wireSlider('humanRate', 'humanRate', v => '$' + v.toFixed(0));
+wireSlider('sensTaskHours', null, v => v + 'h');
+wireSlider('decompTotal', null, v => v + 'h');
+wireSlider('decompChunks', null, v => v.toFixed(0));
+wireSlider('decompOverhead', null, v => v + '%');
+
+document.getElementById('sensTaskHours').addEventListener('input', renderSensitivity);
+document.getElementById('decompTotal').addEventListener('input', renderDecomposition);
+document.getElementById('decompChunks').addEventListener('input', renderDecomposition);
+document.getElementById('decompOverhead').addEventListener('input', renderDecomposition);
+
+// Presets
+window.applyPreset = function(name) {
+  const p = presets[name];
+  Object.assign(params, p);
+  document.getElementById('costPerStep').value = p.costPerStep;
+  document.getElementById('costPerStep-val').textContent = '$' + p.costPerStep.toFixed(p.costPerStep < 0.1 ? 3 : 2);
+  document.getElementById('stepsPerHr').value = p.stepsPerHr;
+  document.getElementById('stepsPerHr-val').textContent = p.stepsPerHr;
+  document.getElementById('halfLife').value = p.halfLife;
+  document.getElementById('halfLife-val').textContent = p.halfLife + 'h';
+  document.getElementById('humanRate').value = p.humanRate;
+  document.getElementById('humanRate-val').textContent = '$' + p.humanRate;
+  document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('active'));
+  document.querySelector(`.preset-btn[onclick="applyPreset('${name}')"]`).classList.add('active');
+  renderAll();
+};
+
+// Tabs
+document.querySelectorAll('.tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+    tab.classList.add('active');
+    document.getElementById('tab-' + tab.dataset.tab).classList.add('active');
+    // Re-render charts when switching tabs (canvas sizing)
+    setTimeout(() => {
+      if (tab.dataset.tab === 'comparison') renderMainChart();
+      if (tab.dataset.tab === 'decomposition') renderDecomposition();
+    }, 50);
+  });
+});
+
+// Initial render
+renderAll();
+</script>
+</body>
+</html>
