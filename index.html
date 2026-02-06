@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>The Half-Life Tax: Interactive Agent Economics Model</title>
-<meta name="description" content="Interactive back-of-the-envelope calculator exploring how AI agent reliability decay creates an exponential cost wall.">
+<meta name="description" content="Interactive back-of-the-envelope calculator exploring how AI agent reliability decay creates a cost wall. Now with Weibull survival model.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,300;8..60,400;8..60,600;8..60,700&family=JetBrains+Mono:wght@400;500;600&family=Source+Sans+3:wght@300;400;500;600&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
@@ -194,6 +194,62 @@
     color: var(--text-light);
     margin-top: 6px;
     line-height: 1.45;
+  }
+
+  /* Model toggle */
+  .model-toggle {
+    display: flex;
+    gap: 0;
+    background: var(--bg-input);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 3px;
+    margin-bottom: 16px;
+    width: fit-content;
+  }
+
+  .model-toggle button {
+    font-family: var(--sans);
+    font-size: 13px;
+    font-weight: 500;
+    padding: 7px 16px;
+    border: none;
+    border-radius: 4px;
+    background: transparent;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  .model-toggle button.active {
+    background: var(--bg-card);
+    color: var(--accent);
+    box-shadow: var(--shadow);
+    font-weight: 600;
+  }
+
+  .model-toggle button:hover:not(.active) {
+    color: var(--text);
+  }
+
+  .model-description {
+    font-size: 13px;
+    color: var(--text-muted);
+    margin-bottom: 16px;
+    line-height: 1.55;
+    max-width: 680px;
+    padding: 12px 16px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+  }
+
+  .model-description code {
+    font-family: var(--mono);
+    font-size: 12px;
+    background: var(--bg-input);
+    padding: 1px 5px;
+    border-radius: 3px;
   }
 
   /* Key equation */
@@ -418,6 +474,12 @@
 
   .insight strong { color: var(--accent); }
 
+  .insight.blue-insight {
+    background: var(--blue-bg);
+    border-color: #b8cfe4;
+  }
+  .insight.blue-insight strong { color: var(--blue); }
+
   /* Tabs */
   .tabs {
     display: flex;
@@ -507,6 +569,16 @@
     color: white;
     border-color: var(--accent);
   }
+
+  /* Weibull-specific styling */
+  .weibull-only { display: none; }
+  .weibull-active .weibull-only { display: block; }
+  .weibull-active .exponential-only { display: none; }
+
+  .param-card.disabled-card {
+    opacity: 0.4;
+    pointer-events: none;
+  }
 </style>
 </head>
 <body>
@@ -514,8 +586,24 @@
 <div class="container">
   <header>
     <h1>The Half-Life Tax</h1>
-    <p>An interactive model of AI agent economics. Agent cost per successful outcome scales exponentially with task length, while human cost scales linearly. Adjust the parameters below to explore why the half-life of agent reliability is the only variable that truly matters. Based on <a href="https://www.tobyord.com/writing/half-life">Ord's half-life analysis</a> and <a href="https://metr.org/blog/2025-03-19-measuring-ai-ability-to-complete-long-tasks/">METR's empirical data</a>.</p>
+    <p>An interactive model of AI agent economics. Agent cost per successful outcome scales with task length, while human cost scales linearly. The shape of that scaling depends on the survival model: exponential (Ord's constant hazard rate) or Weibull with &kappa;&lt;1 (Hamilton's declining hazard rate). Based on <a href="https://www.tobyord.com/writing/half-life">Ord's half-life analysis</a>, <a href="https://metr.org/blog/2025-03-19-measuring-ai-ability-to-complete-long-tasks/">METR's empirical data</a>, and <a href="https://gushamilton.github.io/lab/2026/01/23/petos-paradox-ai-agents/">Hamilton's Weibull reanalysis</a>.</p>
   </header>
+
+  <!-- Survival model toggle -->
+  <div class="section">
+    <div class="section-label">Survival model</div>
+    <h2>How Does Success Decay?</h2>
+    <p>The original model assumes a constant hazard rate (exponential decay). <a href="https://gushamilton.github.io/lab/2026/01/23/petos-paradox-ai-agents/">Hamilton's reanalysis</a> of the METR data suggests the hazard rate may decrease over time, following a Weibull distribution with &kappa;&asymp;0.6-0.9 for SOTA models (and &asymp;0.37 for humans). Crucially, &kappa; does not correlate with model size: scaling reduces the base hazard rate (&lambda;) but does not change the shape of the decay. The two models fit the available data about equally well, but diverge dramatically at the tails.</p>
+
+    <div class="model-toggle">
+      <button class="active" onclick="setModel('exponential')">Exponential (Ord)</button>
+      <button onclick="setModel('weibull')">Weibull (Hamilton)</button>
+    </div>
+
+    <div class="model-description" id="modelDesc">
+      <strong>Constant hazard rate.</strong> The probability of failing in the next step is the same regardless of how far you have got. Success decays as <code>S(t) = 0.5^(t/T50)</code>. Expected attempts grow exponentially. This is the worst case for long tasks.
+    </div>
+  </div>
 
   <!-- Parameters -->
   <div class="section">
@@ -550,7 +638,7 @@
       </div>
 
       <div class="param-card">
-        <label>Half-life <span class="unit">(hours)</span></label>
+        <label>Half-life / T<sub>50</sub> <span class="unit">(hours)</span></label>
         <div class="slider-row">
           <input type="range" id="halfLife" min="0.5" max="80" step="0.5" value="5">
           <span class="slider-value" id="halfLife-val">5h</span>
@@ -566,16 +654,34 @@
         </div>
         <div class="param-hint">Salary + benefits + overhead. $100-200 typical for skilled knowledge workers.</div>
       </div>
+
+      <div class="param-card" id="weibullKCard" style="opacity:0.35; pointer-events:none;">
+        <label>Weibull shape parameter <span class="unit">(&kappa;)</span></label>
+        <div class="slider-row">
+          <input type="range" id="weibullK" min="0.3" max="1.0" step="0.05" value="0.70">
+          <span class="slider-value" id="weibullK-val">0.70</span>
+        </div>
+        <div class="param-hint">&kappa;=1 is exponential (constant hazard). &kappa;&lt;1 means the hazard rate decreases over time. Hamilton finds SOTA models cluster &kappa;&asymp;0.6-0.9; humans &asymp;0.37.</div>
+      </div>
+
+      <div class="param-card">
+        <label>Verification cost <span class="unit">(% of human hr rate per attempt)</span></label>
+        <div class="slider-row">
+          <input type="range" id="verifCost" min="0" max="50" step="1" value="0">
+          <span class="slider-value" id="verifCost-val">0%</span>
+        </div>
+        <div class="param-hint">Human time to review each agent attempt. Under the Weibull model with fatter tails, this may become the binding constraint rather than raw agent cost.</div>
+      </div>
     </div>
   </div>
 
   <!-- Key equation -->
-  <div class="equation-box">
-    <span class="eq-label">// Key relationship</span><br>
+  <div class="equation-box" id="equationBox">
+    <span class="eq-label">// Key relationship (Exponential)</span><br>
     P(success) = 0.5 ^ (task_hours / <span class="eq-accent">half_life</span>)<br>
     E[attempts] = 1 / P(success) = <span class="eq-accent">2 ^ (task_hours / half_life)</span><br>
-    Agent cost = steps × $/step × <span class="eq-accent">2 ^ (task_hours / half_life)</span><br>
-    Human cost = hourly_rate × task_hours &nbsp;<span class="eq-label">// linear</span>
+    Agent cost = steps &times; $/step &times; <span class="eq-accent">2 ^ (task_hours / half_life)</span><br>
+    Human cost = hourly_rate &times; task_hours &nbsp;<span class="eq-label">// linear</span>
   </div>
 
   <!-- Tabs -->
@@ -590,12 +696,12 @@
     <div class="section">
       <div class="section-label">Results</div>
       <h2>Agent vs Human Cost by Task Length</h2>
-      <p>The highlighted row marks where agent cost per success overtakes human cost. Note the exponential blowup beyond this point.</p>
+      <p>The highlighted row marks where agent cost per success overtakes human cost. Note how the shape of the divergence depends on the survival model.</p>
 
       <div class="chart-container">
         <canvas id="mainChart"></canvas>
       </div>
-      <div class="table-note">Logarithmic scale. The divergence after the crossover is the exponential at work.</div>
+      <div class="table-note">Logarithmic scale. Under the exponential model the divergence is dramatic; under the Weibull model (k&lt;1) it is much gentler.</div>
 
       <div class="table-wrap">
         <table id="mainTable">
@@ -614,9 +720,10 @@
           <tbody id="mainTableBody"></tbody>
         </table>
       </div>
-      <div class="table-note">Ratio = agent cost / human cost. Values below 1 favour the agent; above 1 favour the human.</div>
+      <div class="table-note">Ratio = (agent cost + verification cost) / human cost. Values below 1 favour the agent; above 1 favour the human.</div>
 
       <div class="insight" id="mainInsight"></div>
+      <div class="insight blue-insight" id="modelCompareInsight" style="display:none;"></div>
     </div>
   </div>
 
@@ -625,7 +732,7 @@
     <div class="section">
       <div class="section-label">Sensitivity analysis</div>
       <h2>Half-life vs Cost per Step</h2>
-      <p>For a fixed task length, how does the agent-to-human cost ratio change as you vary half-life and cost per step? The half-life dominates because it acts on the exponent.</p>
+      <p>For a fixed task length, how does the agent-to-human cost ratio change as you vary half-life and cost per step? Under the exponential model the half-life dominates because it acts on the exponent. Under Weibull (k&lt;1), cost per step matters relatively more.</p>
 
       <div class="decomp-controls">
         <div class="decomp-control">
@@ -643,7 +750,7 @@
           <tbody id="sensTableBody"></tbody>
         </table>
       </div>
-      <div class="table-note">Values are agent cost / human cost. Green: agent cheaper. Red: human cheaper. Each cell uses the current steps/hr and human rate settings.</div>
+      <div class="table-note">Values are (agent cost + verification) / human cost. Green: agent cheaper. Red: human cheaper. Each cell uses the current steps/hr and human rate settings.</div>
 
       <div class="insight" id="sensInsight"></div>
     </div>
@@ -692,7 +799,7 @@
   </div>
 
   <footer>
-    <p>Interactive companion to <em>The Half-Life Tax: A BOTEC on Why Agent Economics Hit an Exponential Wall</em>. Model based on <a href="https://www.tobyord.com/writing/half-life">Toby Ord's half-life analysis</a>, <a href="https://metr.org/blog/2025-03-19-measuring-ai-ability-to-complete-long-tasks/">METR's task-length data</a>, and OECD scenarios from the International AI Safety Report 2026. This is a simplified back-of-the-envelope model; see the post for caveats.</p>
+    <p>Interactive companion to <em>Agent Economics: a BOTEC on feasibility</em>. Model based on <a href="https://www.tobyord.com/writing/half-life">Toby Ord's half-life analysis</a>, <a href="https://metr.org/blog/2025-03-19-measuring-ai-ability-to-complete-long-tasks/">METR's task-length data</a>, <a href="https://gushamilton.github.io/lab/2026/01/23/petos-paradox-ai-agents/">Hamilton's Weibull reanalysis</a>, and OECD scenarios from the International AI Safety Report 2026. This is a simplified back-of-the-envelope model; see the post for caveats.</p>
   </footer>
 </div>
 
@@ -703,6 +810,9 @@ const params = {
   stepsPerHr: 80,
   halfLife: 5,
   humanRate: 150,
+  weibullK: 0.70,
+  verifCost: 0,
+  model: 'exponential', // 'exponential' or 'weibull'
 };
 
 const presets = {
@@ -730,9 +840,9 @@ function fmtPct(v) {
 }
 
 function fmtRatio(v) {
-  if (v >= 1000) return v.toFixed(0) + '×';
-  if (v >= 10) return v.toFixed(1) + '×';
-  return v.toFixed(2) + '×';
+  if (v >= 1000) return v.toFixed(0) + '\u00d7';
+  if (v >= 10) return v.toFixed(1) + '\u00d7';
+  return v.toFixed(2) + '\u00d7';
 }
 
 function fmtAttempts(v) {
@@ -743,20 +853,47 @@ function fmtAttempts(v) {
 }
 
 function contextMultiplier(steps) {
-  // Modelling growing context cost: 1.0 at 20 steps, up to ~1.5 at 6400 steps
   return 1 + 0.5 * Math.min(1, Math.log(steps / 20 + 1) / Math.log(320));
+}
+
+// ── Survival models ──
+function pSuccess(taskHours) {
+  const t50 = params.halfLife;
+  if (params.model === 'weibull') {
+    const k = params.weibullK;
+    // Weibull survival: S(t) = exp(-(t/lambda)^k)
+    // Calibrate lambda so S(t50) = 0.5:
+    // 0.5 = exp(-(t50/lambda)^k) => lambda = t50 / (ln(2))^(1/k)
+    const lambda = t50 / Math.pow(Math.LN2, 1 / k);
+    return Math.exp(-Math.pow(taskHours / lambda, k));
+  } else {
+    return Math.pow(0.5, taskHours / t50);
+  }
 }
 
 function computeRow(taskHours) {
   const steps = params.stepsPerHr * taskHours;
   const cm = contextMultiplier(steps);
   const costPerAttempt = steps * params.costPerStep * cm;
-  const pSuccess = Math.pow(0.5, taskHours / params.halfLife);
-  const eAttempts = 1 / pSuccess;
-  const agentCost = costPerAttempt * eAttempts;
+  const pS = pSuccess(taskHours);
+  const eAttempts = 1 / pS;
+  const agentCostRaw = costPerAttempt * eAttempts;
+  // Verification cost: human reviews each attempt
+  const verifPerAttempt = (params.verifCost / 100) * params.humanRate * Math.min(taskHours, 4);
+  const totalVerifCost = verifPerAttempt * eAttempts;
+  const agentCost = agentCostRaw + totalVerifCost;
   const humanCost = params.humanRate * taskHours;
   const ratio = agentCost / humanCost;
-  return { taskHours, steps, costPerAttempt, pSuccess, eAttempts, agentCost, humanCost, ratio };
+  return { taskHours, steps, costPerAttempt, pSuccess: pS, eAttempts, agentCostRaw, totalVerifCost, agentCost, humanCost, ratio };
+}
+
+// Compute using the OTHER model for comparison
+function computeRowAlt(taskHours) {
+  const savedModel = params.model;
+  params.model = savedModel === 'exponential' ? 'weibull' : 'exponential';
+  const row = computeRow(taskHours);
+  params.model = savedModel;
+  return row;
 }
 
 // ── Rendering ──
@@ -775,7 +912,6 @@ function renderMainTable() {
   const tbody = document.getElementById('mainTableBody');
   const rows = taskHoursList.map(h => computeRow(h));
 
-  // Find crossover
   let crossIdx = rows.findIndex(r => r.ratio >= 1);
 
   tbody.innerHTML = rows.map((r, i) => {
@@ -792,16 +928,34 @@ function renderMainTable() {
     </tr>`;
   }).join('');
 
-  // Insight
+  // Main insight
   const insight = document.getElementById('mainInsight');
+  const modelLabel = params.model === 'weibull' ? `Weibull (\u03ba=${params.weibullK})` : 'exponential';
   if (crossIdx === -1) {
-    insight.innerHTML = `<p>With a <strong>${params.halfLife}h half-life</strong>, agents remain cheaper than humans across all task lengths shown. This is the economic picture that justifies massive AI infrastructure investment.</p>`;
+    insight.innerHTML = `<p>With a <strong>${params.halfLife}h T<sub>50</sub></strong> under the ${modelLabel} model, agents remain cheaper than humans across all task lengths shown. This is the economic picture that justifies massive AI infrastructure investment.</p>`;
   } else if (crossIdx === 0) {
-    insight.innerHTML = `<p>With a <strong>${params.halfLife}h half-life</strong>, agents are already more expensive than humans even for 15-minute tasks. The reliability is too low to be economical at any task length with these cost parameters.</p>`;
+    insight.innerHTML = `<p>With a <strong>${params.halfLife}h T<sub>50</sub></strong> under the ${modelLabel} model, agents are already more expensive than humans even for 15-minute tasks. The reliability is too low to be economical at any task length with these cost parameters.</p>`;
   } else {
-    const crossHours = taskHoursList[crossIdx];
     const label = taskLabels[crossIdx];
-    insight.innerHTML = `<p>The crossover hits at roughly <strong>${label}</strong>. Below this, agents are ${fmtRatio(1 / rows[crossIdx - 1].ratio).replace('×', '')}x cheaper. Above it, costs explode: at ${taskLabels[Math.min(crossIdx + 2, rows.length - 1)]}, the agent costs <strong>${fmtRatio(rows[Math.min(crossIdx + 2, rows.length - 1)].ratio)}</strong> the human rate. This is the half-life tax.</p>`;
+    const prevRatio = rows[crossIdx - 1].ratio;
+    const futureIdx = Math.min(crossIdx + 2, rows.length - 1);
+    insight.innerHTML = `<p>The crossover hits at roughly <strong>${label}</strong>. Below this, agents are ${fmtRatio(1 / prevRatio).replace('\u00d7', '')}x cheaper. Above it, costs ${params.model === 'weibull' ? 'grow steadily' : 'explode'}: at ${taskLabels[futureIdx]}, the agent costs <strong>${fmtRatio(rows[futureIdx].ratio)}</strong> the human rate. ${params.model === 'weibull' ? 'Under the Weibull model this growth is a stretched exponential rather than a true exponential, making the wall gentler.' : 'This is the half-life tax.'}</p>`;
+  }
+
+  // Model comparison insight
+  const compareInsight = document.getElementById('modelCompareInsight');
+  const altRows = taskHoursList.map(h => computeRowAlt(h));
+  const altLabel = params.model === 'exponential' ? `Weibull (\u03ba=${params.weibullK})` : 'exponential';
+  const compareIdx = 7; // 24h
+  const curRatio = rows[compareIdx].ratio;
+  const altRatio = altRows[compareIdx].ratio;
+
+  if (Math.abs(curRatio - altRatio) > 0.1) {
+    compareInsight.style.display = 'block';
+    const betterModel = curRatio < altRatio ? params.model : (params.model === 'exponential' ? 'weibull' : 'exponential');
+    compareInsight.innerHTML = `<p><strong>Model comparison at ${taskLabels[compareIdx]}:</strong> The ${modelLabel} model gives a ratio of ${fmtRatio(curRatio)}, while the ${altLabel} model gives ${fmtRatio(altRatio)}. ${params.model === 'weibull' ? 'The fatter tail of the Weibull survival function means fewer expected attempts, making agents significantly more competitive on longer tasks. But if verification cost is high, this advantage narrows because each attempt still requires human review.' : 'Under the Weibull alternative, the picture is more favourable for agents because the fatter survival tail means fewer retries are needed.'}</p>`;
+  } else {
+    compareInsight.style.display = 'none';
   }
 }
 
@@ -817,35 +971,52 @@ function renderMainChart() {
   });
   const humanData = chartHours.map(h => ({ x: h, y: params.humanRate * h }));
 
+  // Also compute the alt model for comparison line
+  const altData = chartHours.map(h => {
+    const r = computeRowAlt(h);
+    return { x: h, y: r.agentCost };
+  });
+
   if (mainChart) mainChart.destroy();
+
+  const datasets = [
+    {
+      label: `Agent cost (${params.model === 'weibull' ? 'Weibull \u03ba=' + params.weibullK : 'exponential'})`,
+      data: agentData,
+      borderColor: '#c44d2b',
+      backgroundColor: 'rgba(196, 77, 43, 0.08)',
+      fill: true,
+      tension: 0.35,
+      pointRadius: 0,
+      borderWidth: 2.5,
+    },
+    {
+      label: `Agent cost (${params.model === 'weibull' ? 'exponential' : 'Weibull \u03ba=' + params.weibullK})`,
+      data: altData,
+      borderColor: '#c44d2b',
+      backgroundColor: 'transparent',
+      fill: false,
+      tension: 0.35,
+      pointRadius: 0,
+      borderWidth: 1.5,
+      borderDash: [3, 3],
+    },
+    {
+      label: 'Human cost',
+      data: humanData,
+      borderColor: '#3568a8',
+      backgroundColor: 'rgba(53, 104, 168, 0.05)',
+      fill: true,
+      tension: 0,
+      pointRadius: 0,
+      borderWidth: 2.5,
+      borderDash: [6, 3],
+    }
+  ];
 
   mainChart = new Chart(ctx, {
     type: 'line',
-    data: {
-      datasets: [
-        {
-          label: 'Agent cost per success',
-          data: agentData,
-          borderColor: '#c44d2b',
-          backgroundColor: 'rgba(196, 77, 43, 0.08)',
-          fill: true,
-          tension: 0.35,
-          pointRadius: 0,
-          borderWidth: 2.5,
-        },
-        {
-          label: 'Human cost',
-          data: humanData,
-          borderColor: '#3568a8',
-          backgroundColor: 'rgba(53, 104, 168, 0.05)',
-          fill: true,
-          tension: 0,
-          pointRadius: 0,
-          borderWidth: 2.5,
-          borderDash: [6, 3],
-        }
-      ]
-    },
+    data: { datasets },
     options: {
       responsive: true,
       maintainAspectRatio: true,
@@ -905,7 +1076,7 @@ function renderSensitivity() {
   const costs = [0.01, 0.05, 0.10, 0.25, 0.50, 1.00];
 
   const thead = document.getElementById('sensTableHead');
-  thead.innerHTML = `<tr><th>Half-life ↓ &nbsp;$/step →</th>${costs.map(c => `<th>${fmt$(c)}</th>`).join('')}</tr>`;
+  thead.innerHTML = `<tr><th>T<sub>50</sub> \u2193 &nbsp;$/step \u2192</th>${costs.map(c => `<th>${fmt$(c)}</th>`).join('')}</tr>`;
 
   const tbody = document.getElementById('sensTableBody');
   tbody.innerHTML = halfLives.map(hl => {
@@ -913,8 +1084,17 @@ function renderSensitivity() {
       const steps = params.stepsPerHr * taskH;
       const cm = contextMultiplier(steps);
       const costAttempt = steps * c * cm;
-      const pS = Math.pow(0.5, taskH / hl);
-      const aCost = costAttempt / pS;
+      // Use current survival model
+      const savedHL = params.halfLife;
+      const savedCPS = params.costPerStep;
+      params.halfLife = hl;
+      params.costPerStep = c;
+      const pS = pSuccess(taskH);
+      const eAtt = 1 / pS;
+      const verifPerAttempt = (params.verifCost / 100) * params.humanRate * Math.min(taskH, 4);
+      const aCost = costAttempt * eAtt + verifPerAttempt * eAtt;
+      params.halfLife = savedHL;
+      params.costPerStep = savedCPS;
       const hCost = params.humanRate * taskH;
       const ratio = aCost / hCost;
       const cls = ratioClass(ratio);
@@ -926,14 +1106,32 @@ function renderSensitivity() {
   // Insight
   const midCostIdx = 3; // $0.25
   const cheapCostIdx = 0; // $0.01
-  const r_hl1 = (() => { const s = params.stepsPerHr * taskH; const cm = contextMultiplier(s); return (s * costs[midCostIdx] * cm) / Math.pow(0.5, taskH / 1) / (params.humanRate * taskH); })();
-  const r_hl5 = (() => { const s = params.stepsPerHr * taskH; const cm = contextMultiplier(s); return (s * costs[midCostIdx] * cm) / Math.pow(0.5, taskH / 5) / (params.humanRate * taskH); })();
-  const r_cheap = (() => { const s = params.stepsPerHr * taskH; const cm = contextMultiplier(s); return (s * costs[cheapCostIdx] * cm) / Math.pow(0.5, taskH / 1) / (params.humanRate * taskH); })();
 
-  const hlImprovement = r_hl1 / r_hl5;
-  const costImprovement = r_hl1 / r_cheap;
+  function getRatio(hl, costIdx) {
+    const s = params.stepsPerHr * taskH;
+    const cm = contextMultiplier(s);
+    const savedHL = params.halfLife;
+    params.halfLife = hl;
+    const pS = pSuccess(taskH);
+    params.halfLife = savedHL;
+    const eAtt = 1 / pS;
+    const verifPerAttempt = (params.verifCost / 100) * params.humanRate * Math.min(taskH, 4);
+    return (s * costs[costIdx] * cm * eAtt + verifPerAttempt * eAtt) / (params.humanRate * taskH);
+  }
 
-  document.getElementById('sensInsight').innerHTML = `<p>For a <strong>${taskH}h task</strong> at $0.25/step: improving half-life from 1h to 5h improves the ratio by <strong>${hlImprovement.toFixed(0)}×</strong>. Cutting cost from $0.25 to $0.01 (a 25× reduction) improves it by only <strong>${costImprovement.toFixed(0)}×</strong>. The half-life improvement is <strong>${(hlImprovement / costImprovement).toFixed(0)}× more valuable</strong> than the cost reduction.</p>`;
+  const r_hl1_mid = getRatio(1, midCostIdx);
+  const r_hl5_mid = getRatio(5, midCostIdx);
+  const r_hl1_cheap = getRatio(1, cheapCostIdx);
+
+  const hlImprovement = r_hl1_mid / r_hl5_mid;
+  const costImprovement = r_hl1_mid / r_hl1_cheap;
+  const relValue = hlImprovement / costImprovement;
+
+  const modelNote = params.model === 'weibull'
+    ? ` Under the Weibull model, cost reductions carry relatively more weight because the expected-attempts penalty is gentler.`
+    : '';
+
+  document.getElementById('sensInsight').innerHTML = `<p>For a <strong>${taskH}h task</strong> at $0.25/step: improving T<sub>50</sub> from 1h to 5h improves the ratio by <strong>${hlImprovement.toFixed(0)}\u00d7</strong>. Cutting cost from $0.25 to $0.01 (a 25\u00d7 reduction) improves it by <strong>${costImprovement.toFixed(0)}\u00d7</strong>. The half-life improvement is <strong>${relValue.toFixed(0)}\u00d7 more valuable</strong> than the cost reduction.${modelNote}</p>`;
 }
 
 function renderDecomposition() {
@@ -956,21 +1154,21 @@ function renderDecomposition() {
     <div class="metric-card">
       <div class="metric-label">Monolithic</div>
       <div class="metric-value ${ratioClass(monoRatio)}">${fmtRatio(monoRatio)}</div>
-      <div class="metric-sub">${fmt$(monoRow.agentCost)} agent · ${fmt$(humanCost)} human</div>
+      <div class="metric-sub">${fmt$(monoRow.agentCost)} agent &middot; ${fmt$(humanCost)} human</div>
     </div>
     <div class="metric-card">
-      <div class="metric-label">${nChunks} chunks × ${chunkHours.toFixed(1)}h</div>
+      <div class="metric-label">${nChunks} chunks &times; ${chunkHours.toFixed(1)}h</div>
       <div class="metric-value ${ratioClass(decompRatio)}">${fmtRatio(decompRatio)}</div>
-      <div class="metric-sub">${fmt$(totalAgentCost)} agent · ${fmt$(humanCost)} human</div>
+      <div class="metric-sub">${fmt$(totalAgentCost)} agent &middot; ${fmt$(humanCost)} human</div>
     </div>
     <div class="metric-card">
       <div class="metric-label">Chunk P(success)</div>
       <div class="metric-value" style="color: var(--blue)">${fmtPct(chunkRow.pSuccess)}</div>
-      <div class="metric-sub">${fmtAttempts(chunkRow.eAttempts)} attempts/chunk · ${fmt$(handoffCost)} overhead</div>
+      <div class="metric-sub">${fmtAttempts(chunkRow.eAttempts)} attempts/chunk &middot; ${fmt$(handoffCost)} overhead</div>
     </div>
   `;
 
-  // Decomp chart: cost vs number of chunks
+  // Decomp chart
   const ctx = document.getElementById('decompChart').getContext('2d');
   const maxChunks = Math.min(Math.ceil(totalHours / 0.5), 48);
   const chunkRange = [];
@@ -1057,12 +1255,67 @@ function renderDecomposition() {
   document.getElementById('decompInsight').innerHTML = `<p>For a <strong>${totalHours}h task</strong> with ${overheadPct * 100}% handoff overhead, the sweet spot is <strong>${optN} chunk${optN > 1 ? 's' : ''}</strong> of ~${optChunkH.toFixed(1)}h each, bringing the ratio to <strong>${fmtRatio(optRatio)}</strong>. ${optRatio < 1 ? 'Decomposition makes agents viable here.' : optRatio < 2 ? 'Close to break-even, but decomposition has limits.' : 'Even with optimal decomposition, agents are significantly more expensive than humans for this task length.'}</p>`;
 }
 
+function updateEquationBox() {
+  const box = document.getElementById('equationBox');
+  if (params.model === 'weibull') {
+    const k = params.weibullK;
+    box.innerHTML = `
+      <span class="eq-label">// Key relationship (Weibull, \u03ba=${k})</span><br>
+      \u03bb = T<sub>50</sub> / ln(2)<sup>1/\u03ba</sup> &nbsp;<span class="eq-label">// scale parameter calibrated to half-life</span><br>
+      P(success) = exp(-(t / <span class="eq-accent">\u03bb</span>)<sup><span class="eq-accent">${k}</span></sup>) &nbsp;<span class="eq-label">// stretched exponential</span><br>
+      E[attempts] = 1 / P(success) = exp((t/\u03bb)<sup>${k}</sup>) &nbsp;<span class="eq-label">// grows as exp(t<sup>${k}</sup>), NOT exp(t)</span><br>
+      Agent cost = steps \u00d7 $/step \u00d7 E[attempts] + <span class="eq-accent">verification \u00d7 E[attempts]</span><br>
+      Human cost = hourly_rate \u00d7 task_hours &nbsp;<span class="eq-label">// linear</span>
+    `;
+  } else {
+    box.innerHTML = `
+      <span class="eq-label">// Key relationship (Exponential / constant hazard)</span><br>
+      P(success) = 0.5 ^ (task_hours / <span class="eq-accent">half_life</span>)<br>
+      E[attempts] = 1 / P(success) = <span class="eq-accent">2 ^ (task_hours / half_life)</span><br>
+      Agent cost = steps \u00d7 $/step \u00d7 <span class="eq-accent">2 ^ (task_hours / half_life)</span> + verification \u00d7 E[attempts]<br>
+      Human cost = hourly_rate \u00d7 task_hours &nbsp;<span class="eq-label">// linear</span>
+    `;
+  }
+}
+
+function updateModelDesc() {
+  const desc = document.getElementById('modelDesc');
+  if (params.model === 'weibull') {
+    desc.innerHTML = `<strong>Declining hazard rate (Weibull, &kappa;=${params.weibullK}).</strong> The probability of failing in the next step <em>decreases</em> the longer the agent has survived. Hamilton finds SOTA models at &kappa;&asymp;0.6-0.9 and humans at &asymp;0.37. Success decays as <code>S(t) = exp(-(t/\u03bb)^&kappa;)</code>, a stretched exponential with a much fatter tail than exponential. Expected attempts grow as <code>exp(t^${params.weibullK})</code> rather than <code>exp(t)</code>. Critically, &kappa; does not appear to improve with model scale: bigger models reduce &lambda; but not &kappa;.`;
+  } else {
+    desc.innerHTML = `<strong>Constant hazard rate.</strong> The probability of failing in the next step is the same regardless of how far you have got. Success decays as <code>S(t) = 0.5^(t/T50)</code>. Expected attempts grow exponentially. This is the worst case for long tasks.`;
+  }
+}
+
 function renderAll() {
+  updateEquationBox();
+  updateModelDesc();
   renderMainTable();
   renderMainChart();
   renderSensitivity();
   renderDecomposition();
 }
+
+// ── Model toggle ──
+window.setModel = function(model) {
+  params.model = model;
+  document.querySelectorAll('.model-toggle button').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.model-toggle button').forEach(b => {
+    if ((model === 'exponential' && b.textContent.includes('Exponential')) ||
+        (model === 'weibull' && b.textContent.includes('Weibull'))) {
+      b.classList.add('active');
+    }
+  });
+  const kCard = document.getElementById('weibullKCard');
+  if (model === 'weibull') {
+    kCard.style.opacity = '1';
+    kCard.style.pointerEvents = 'auto';
+  } else {
+    kCard.style.opacity = '0.35';
+    kCard.style.pointerEvents = 'none';
+  }
+  renderAll();
+};
 
 // ── Event wiring ──
 function wireSlider(id, paramKey, formatter) {
@@ -1072,7 +1325,6 @@ function wireSlider(id, paramKey, formatter) {
     const v = parseFloat(el.value);
     if (paramKey) params[paramKey] = v;
     valEl.textContent = formatter(v);
-    // Clear active preset
     document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('active'));
     renderAll();
   });
@@ -1082,6 +1334,8 @@ wireSlider('costPerStep', 'costPerStep', v => '$' + v.toFixed(v < 0.1 ? 3 : 2));
 wireSlider('stepsPerHr', 'stepsPerHr', v => v.toFixed(0));
 wireSlider('halfLife', 'halfLife', v => v + 'h');
 wireSlider('humanRate', 'humanRate', v => '$' + v.toFixed(0));
+wireSlider('weibullK', 'weibullK', v => v.toFixed(2));
+wireSlider('verifCost', 'verifCost', v => v + '%');
 wireSlider('sensTaskHours', null, v => v + 'h');
 wireSlider('decompTotal', null, v => v + 'h');
 wireSlider('decompChunks', null, v => v.toFixed(0));
@@ -1116,7 +1370,6 @@ document.querySelectorAll('.tab').forEach(tab => {
     document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
     tab.classList.add('active');
     document.getElementById('tab-' + tab.dataset.tab).classList.add('active');
-    // Re-render charts when switching tabs (canvas sizing)
     setTimeout(() => {
       if (tab.dataset.tab === 'comparison') renderMainChart();
       if (tab.dataset.tab === 'decomposition') renderDecomposition();
