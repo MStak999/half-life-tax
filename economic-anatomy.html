@@ -679,6 +679,49 @@
       <div class="table-note">Minimum T<sub>50</sub> (hours) at which verification cost alone equals human cost. Below this, agents are unviable regardless of inference cost.</div>
 
       <div class="insight blue-insight" id="floorInsight"></div>
+
+      <h2 style="margin-top:24px;">The Revenue Loop: Why Cutting Verification Is Self-Defeating</h2>
+      <p>Verification is not just a cost. It is how agent expenditure converts to revenue. Cutting it does not save money; it destroys the business model. Adjust the client price and rejection rate to see the economics.</p>
+
+      <div class="params-grid" style="margin-bottom:16px;">
+        <div class="param-card">
+          <label>Client price per deliverable <span class="unit">(USD)</span></label>
+          <div class="slider-row">
+            <input type="range" id="clientPrice" min="5000" max="50000" step="500" value="15000">
+            <span class="slider-value" id="clientPrice-val">$15,000</span>
+          </div>
+          <div class="param-hint">What the client pays for a successful two-week deliverable.</div>
+        </div>
+        <div class="param-card">
+          <label>Client rejection rate on failures <span class="unit">(%)</span></label>
+          <div class="slider-row">
+            <input type="range" id="rejectRate" min="10" max="100" step="5" value="50">
+            <span class="slider-value" id="rejectRate-val">50%</span>
+          </div>
+          <div class="param-hint">% of failed deliverables the client rejects/disputes. 50% = conservative (many failures look superficially OK).</div>
+        </div>
+      </div>
+
+      <div class="metrics-grid metrics-grid-4" id="revenueMetrics"></div>
+
+      <div class="table-wrap">
+        <table id="revenueTable">
+          <thead>
+            <tr>
+              <th>Scenario</th>
+              <th>Cost per task</th>
+              <th>Effective revenue</th>
+              <th>Margin per task</th>
+              <th>Margin %</th>
+              <th>Tasks to break even</th>
+            </tr>
+          </thead>
+          <tbody id="revenueBody"></tbody>
+        </table>
+      </div>
+      <div class="table-note">Shows per-task economics for a company running 2-week agent tasks. "With verification" filters out failures before delivery. "Without verification" delivers all outputs, including the ~68% failures. "Degraded (5%)" uses cursory review.</div>
+
+      <div class="insight" id="revenueInsight"></div>
     </div>
   </div>
 
@@ -1058,6 +1101,141 @@ function renderVerification() {
     return lam * Math.pow(Math.LN2, 1 / P.kappa);
   })();
   document.getElementById('floorInsight').innerHTML = `<p>For a two-week task at 20% review, the verification floor is <strong>T<sub>50</sub> > ${floor2wk20.toFixed(1)}h</strong>. Below this, even if compute were completely free, human review time alone would exceed the cost of a human doing the work. This floor is surprisingly high and sets a hard minimum for agent viability that no amount of inference cost reduction can circumvent.</p>`;
+
+  // Revenue loop
+  renderRevenueLoop();
+}
+
+function renderRevenueLoop() {
+  const clientPrice = parseFloat(document.getElementById('clientPrice').value);
+  const rejectRate = parseFloat(document.getElementById('rejectRate').value) / 100;
+
+  const taskH = 80; // 2-week task
+  const ps = pSuccess(taskH);
+  const ea = eAttempts(taskH);
+  const comp = computeCost(taskH);
+  const verif = verifCost(taskH);
+  const totalWithVerif = comp + verif;
+  const hc = humanCost(taskH);
+  const failRate = 1 - ps;
+
+  // With verification: only successful outputs are delivered
+  const marginWith = clientPrice - totalWithVerif;
+  const marginPctWith = (marginWith / clientPrice * 100);
+
+  // Without verification: all outputs delivered, client rejects some failures
+  const compNoVerif = comp; // compute only
+  // Per success-equivalent: company runs ea attempts, delivers all of them
+  // Expected deliveries per "cycle" of ea attempts: ea total outputs, 1 success + (ea-1) failures
+  // Revenue per cycle: clientPrice for success + clientPrice*(1-rejectRate) per non-rejected failure
+  const failedOutputs = ea - 1;
+  const acceptedFailures = failedOutputs * (1 - rejectRate);
+  const revenuePerCycle = clientPrice + acceptedFailures * clientPrice;
+  const costPerCycle = compNoVerif; // total compute for all ea attempts is already in computeCost
+  // But we need cost per single attempt * ea
+  const singleAttemptCost = P.costStep * P.stepsHr * taskH;
+  const totalComputePerCycle = singleAttemptCost * ea;
+  const netPerCycle = revenuePerCycle - totalComputePerCycle;
+  const effectiveRevenuePerTask = revenuePerCycle / ea; // per output sent
+  const costPerOutputSent = totalComputePerCycle / ea; // same as singleAttemptCost
+  const marginNoVerif = effectiveRevenuePerTask - costPerOutputSent;
+  // But: client churn, reputation damage. Let's show blended margin
+  const blendedRevenue = clientPrice * (ps + (1 - ps) * (1 - rejectRate));
+  const blendedCost = singleAttemptCost;
+  const blendedMargin = blendedRevenue - blendedCost;
+  const blendedMarginPct = blendedRevenue > 0 ? (blendedMargin / blendedRevenue * 100) : -100;
+
+  // With degraded verification (5%)
+  const verifDegraded = verifCost(taskH, undefined, undefined, 0.05);
+  const totalDegraded = comp + verifDegraded;
+  // At 5% review, many failures slip through. Estimate: 5% review catches ~30% of failures
+  const catchRate5pct = 0.30;
+  const passedFailRate = failRate * (1 - catchRate5pct);
+  const blendedRevDegraded = clientPrice * (ps + passedFailRate * (1 - rejectRate));
+  const blendedCostDegraded = totalDegraded / ea; // per attempt avg
+  const actualCostDegraded = singleAttemptCost + 0.05 * taskH * P.humanRate; // compute + review per attempt
+  const blendedMarginDegraded = blendedRevDegraded - actualCostDegraded;
+  const blendedMarginPctDegraded = blendedRevDegraded > 0 ? (blendedMarginDegraded / blendedRevDegraded * 100) : -100;
+
+  // Metrics
+  const savings = verif; // what you "save" by cutting verification
+  // Revenue at risk: proportion of outputs that are failures * client price * rejection rate
+  const revenueAtRisk = failRate * clientPrice * rejectRate * ea;
+
+  document.getElementById('revenueMetrics').innerHTML = `
+    <div class="metric-card">
+      <div class="metric-label">Verification cost</div>
+      <div class="metric-value" style="color:var(--blue)">${fmt$(verif)}</div>
+      <div class="metric-sub">"saved" by cutting review</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-label">Revenue at risk</div>
+      <div class="metric-value" style="color:var(--accent)">${fmt$(failRate * clientPrice)}</div>
+      <div class="metric-sub">per output (${(failRate*100).toFixed(0)}% are failures)</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-label">Margin with review</div>
+      <div class="metric-value ${marginWith > 0 ? 'cell-green' : 'cell-red'}">${marginPctWith.toFixed(0)}%</div>
+      <div class="metric-sub">${fmt$(marginWith)} per task</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-label">Margin without review</div>
+      <div class="metric-value ${blendedMargin > 0 ? 'cell-green' : 'cell-red'}">${blendedMarginPct.toFixed(0)}%</div>
+      <div class="metric-sub">${fmt$(blendedMargin)} per output sent</div>
+    </div>
+  `;
+
+  // Table
+  document.getElementById('revenueBody').innerHTML = `
+    <tr>
+      <td>With verification (${(P.reviewFrac*100).toFixed(0)}%)</td>
+      <td>${fmt$(totalWithVerif)}</td>
+      <td>${fmt$(clientPrice)}</td>
+      <td class="${marginWith > 0 ? 'cell-green' : 'cell-red'}">${fmt$(marginWith)}</td>
+      <td class="${marginPctWith > 0 ? 'cell-green' : 'cell-red'}">${marginPctWith.toFixed(0)}%</td>
+      <td>1</td>
+    </tr>
+    <tr>
+      <td>Degraded review (5%)</td>
+      <td>${fmt$(actualCostDegraded)}</td>
+      <td>${fmt$(blendedRevDegraded)}</td>
+      <td class="${blendedMarginDegraded > 0 ? 'cell-green' : 'cell-red'}">${fmt$(blendedMarginDegraded)}</td>
+      <td class="${blendedMarginPctDegraded > 0 ? 'cell-green' : 'cell-red'}">${blendedMarginPctDegraded.toFixed(0)}%</td>
+      <td>${blendedMarginDegraded > 0 ? Math.ceil(totalWithVerif / blendedMarginDegraded) : '\u221e'}</td>
+    </tr>
+    <tr>
+      <td>No verification</td>
+      <td>${fmt$(singleAttemptCost)}</td>
+      <td>${fmt$(blendedRevenue)}</td>
+      <td class="${blendedMargin > 0 ? 'cell-green' : 'cell-red'}">${fmt$(blendedMargin)}</td>
+      <td class="${blendedMarginPct > 0 ? 'cell-green' : 'cell-red'}">${blendedMarginPct.toFixed(0)}%</td>
+      <td>${blendedMargin > 0 ? Math.ceil(totalWithVerif / blendedMargin) : '\u221e'}</td>
+    </tr>
+    <tr>
+      <td>Human baseline</td>
+      <td>${fmt$(hc)}</td>
+      <td>${fmt$(clientPrice)}</td>
+      <td class="${clientPrice - hc > 0 ? 'cell-green' : 'cell-red'}">${fmt$(clientPrice - hc)}</td>
+      <td class="${clientPrice - hc > 0 ? 'cell-green' : 'cell-red'}">${((clientPrice - hc) / clientPrice * 100).toFixed(0)}%</td>
+      <td>1</td>
+    </tr>
+  `;
+
+  // Revenue insight
+  const skipSavings = verif;
+  const skipRevenueHit = failRate * clientPrice * rejectRate;
+  const ratio_hit_to_savings = skipRevenueHit / skipSavings;
+
+  let insightText;
+  if (blendedMargin > marginWith) {
+    insightText = `At these settings, cutting verification actually increases per-output margin because the failure rate is low enough and the rejection rate is low enough that most failures pass. This is the dangerous regime: the economic incentive and the safety incentive diverge. This occurs when T<sub>50</sub> is high enough relative to task length that failures are infrequent, or when clients cannot easily detect failures.`;
+  } else if (blendedMargin > 0) {
+    insightText = `Cutting verification saves <strong>${fmt$(skipSavings)}</strong> per task but puts <strong>${fmt$(skipRevenueHit)}</strong> per output at risk from client rejections, a ratio of ${ratio_hit_to_savings.toFixed(1)}\u00d7. The no-verification margin (${blendedMarginPct.toFixed(0)}%) is lower than the verified margin (${marginPctWith.toFixed(0)}%). The company can technically survive without verification, but it is leaving money on the table and accumulating reputational debt. This is the grey zone where competitive pressure could push towards degraded review.`;
+  } else {
+    insightText = `Cutting verification is economically fatal. Saving <strong>${fmt$(skipSavings)}</strong> on review puts <strong>${fmt$(skipRevenueHit)}</strong> per output at risk. With ${(failRate*100).toFixed(0)}% of outputs being failures and ${(rejectRate*100).toFixed(0)}% of those rejected, the blended margin goes negative. A company operating without verification on these tasks will burn cash until it stops. The revenue loop enforces oversight as a survival constraint, not a policy choice.`;
+  }
+
+  document.getElementById('revenueInsight').innerHTML = `<p>${insightText}</p>`;
 }
 
 // ── Tab 2: Self-Sustaining Agent ──
@@ -1337,10 +1515,17 @@ function renderChain() {
   const p40 = pSuccess(40);
   const c2Status = p40 < 0.2 ? 'red' : p40 < 0.5 ? 'amber' : 'green';
 
-  // Condition 3: payment implies oversight
-  // This is structurally always true. But verification quality depends on review fraction feasibility
-  const reviewHours80 = 80 * P.reviewFrac * eAttempts(80);
-  const c3Status = 'green'; // always met by default
+  // Condition 3: revenue loop enforces verification
+  // Calculate: is cutting verification self-defeating?
+  const ps80 = pSuccess(80);
+  const singleAttemptCost80 = P.costStep * P.stepsHr * 80;
+  const failRate80 = 1 - ps80;
+  const clientPriceEst = Math.max(humanCost(80) * 1.25, totalAgentCost(80) * 1.25); // estimate client price
+  const blendedRevNoVerif = clientPriceEst * (ps80 + failRate80 * 0.5); // 50% rejection of failures
+  const marginNoVerif = blendedRevNoVerif - singleAttemptCost80;
+  const marginWithVerif = clientPriceEst - totalAgentCost(80);
+  const verifSelfDefeating = marginNoVerif < marginWithVerif;
+  const c3Status = verifSelfDefeating ? 'green' : 'amber'; // green = revenue loop blocks cutting verification
 
   // Condition 4: operation beyond intended scope
   // Self-sustaining: can agent profit? Reckless: does plan succeed?
@@ -1368,10 +1553,12 @@ function renderChain() {
     <div class="chain-card">
       <div class="chain-header">
         <div class="chain-status ${c3Status}"></div>
-        <h3>Condition 3: Someone is paying (oversight is default)</h3>
+        <h3>Condition 3: Revenue loop enforces verification</h3>
       </div>
-      <div class="chain-detail">Economic deployment creates verification moments. At ${(P.reviewFrac*100).toFixed(0)}% review, checking a 2-week task takes ~${(80 * P.reviewFrac).toFixed(0)}h per attempt. With ${fmtAttempts(eAttempts(80))} attempts, that is ~${reviewHours80.toFixed(0)}h of human review per success.</div>
-      <div class="chain-numbers">Review per success: ${reviewHours80.toFixed(0)}h &middot; Verification cost: ${fmt$(verifCost(80))} &middot; ${verifCost(80) > computeCost(80) ? 'Verification > compute (verification is binding constraint)' : 'Compute > verification'}</div>
+      <div class="chain-detail">${verifSelfDefeating
+        ? `Cutting verification is self-defeating: margin with review (${fmt$(marginWithVerif)}) exceeds margin without (${fmt$(marginNoVerif)}). The ${(failRate80*100).toFixed(0)}% failure rate destroys revenue faster than verification saves costs. The revenue loop enforces oversight as a survival constraint.`
+        : `At these settings, cutting verification may temporarily improve margins because the failure rate is low enough (${(failRate80*100).toFixed(0)}%). This is the dangerous regime where economic incentives and safety diverge. Governance and regulation must compensate where market discipline weakens.`}</div>
+      <div class="chain-numbers">Verification cost: ${fmt$(verifCost(80))} &middot; ${verifSelfDefeating ? '✓ Revenue loop blocks cutting review' : '⚠ Revenue loop does not fully block cutting review'} &middot; ${verifCost(80) > computeCost(80) ? 'Verification > compute' : 'Compute > verification'}</div>
     </div>
     <div class="chain-card">
       <div class="chain-header">
@@ -1408,14 +1595,14 @@ function renderChain() {
   // Score each condition 0-100 (100 = fully met from deployer perspective)
   const c1Score = Math.min(100, Math.max(0, (1 - (viable80 - 1) / 5) * 100));
   const c2Score = Math.min(100, p40 * 100 * 2);
-  const c3Score = 85; // always partially met (payment creates oversight)
+  const c3Score = verifSelfDefeating ? 85 : 45; // revenue loop strength
   const c4Score = Math.min(100, pMonthPlan * 100 * 2);
 
   if (chainChart) chainChart.destroy();
   chainChart = new Chart(ctx, {
     type: 'bar',
     data: {
-      labels: ['1. Complexity\naffordable', '2. Sufficient\nautonomy', '3. Payment creates\noversight', '4. Beyond intended\nscope'],
+      labels: ['1. Complexity\naffordable', '2. Sufficient\nautonomy', '3. Revenue loop\nenforces review', '4. Beyond intended\nscope'],
       datasets: [{
         label: 'Condition strength',
         data: [c1Score, c2Score, 100 - c3Score, c4Score],
@@ -1513,6 +1700,16 @@ wireSlider('reviewFrac', 'reviewFrac', v => (v * 1).toFixed(0) + '%');
 // Fix: reviewFrac stored as 0-1 but slider is 0-50
 document.getElementById('reviewFrac').addEventListener('input', () => {
   P.reviewFrac = parseFloat(document.getElementById('reviewFrac').value) / 100;
+});
+
+// Revenue loop sliders (local to verification tab)
+document.getElementById('clientPrice').addEventListener('input', () => {
+  document.getElementById('clientPrice-val').textContent = '$' + parseInt(document.getElementById('clientPrice').value).toLocaleString();
+  renderRevenueLoop();
+});
+document.getElementById('rejectRate').addEventListener('input', () => {
+  document.getElementById('rejectRate-val').textContent = parseInt(document.getElementById('rejectRate').value) + '%';
+  renderRevenueLoop();
 });
 
 // Presets
