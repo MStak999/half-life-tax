@@ -1,0 +1,1555 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Economic Anatomy of a Dangerous Autonomous Agent</title>
+<meta name="description" content="Interactive calculator: what does it cost to run a dangerous autonomous agent, and what do you get for that money?">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,300;8..60,400;8..60,600;8..60,700&family=JetBrains+Mono:wght@400;500;600&family=Source+Sans+3:wght@300;400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+  :root {
+    --bg: #faf8f4;
+    --bg-card: #ffffff;
+    --bg-input: #f3f0ea;
+    --text: #2c2a25;
+    --text-muted: #6b6860;
+    --text-light: #9a958a;
+    --accent: #c44d2b;
+    --accent-light: #e8c4b8;
+    --accent-bg: #fdf0ec;
+    --green: #2d7a4f;
+    --green-bg: #e8f5ee;
+    --blue: #3568a8;
+    --blue-bg: #eaf0f8;
+    --border: #e2ddd4;
+    --border-dark: #c8c2b6;
+    --shadow: 0 1px 3px rgba(44, 42, 37, 0.06), 0 1px 2px rgba(44, 42, 37, 0.04);
+    --shadow-lg: 0 4px 12px rgba(44, 42, 37, 0.08), 0 2px 4px rgba(44, 42, 37, 0.04);
+    --radius: 6px;
+    --serif: 'Source Serif 4', Georgia, serif;
+    --sans: 'Source Sans 3', -apple-system, sans-serif;
+    --mono: 'JetBrains Mono', 'Consolas', monospace;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: var(--sans);
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+    font-size: 15px;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .container {
+    max-width: 920px;
+    margin: 0 auto;
+    padding: 0 24px;
+  }
+
+  /* Header */
+  header {
+    padding: 48px 0 32px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 36px;
+  }
+
+  header h1 {
+    font-family: var(--serif);
+    font-size: 30px;
+    font-weight: 700;
+    line-height: 1.2;
+    letter-spacing: -0.5px;
+    margin-bottom: 12px;
+    color: var(--text);
+  }
+
+  header p {
+    font-size: 15px;
+    color: var(--text-muted);
+    max-width: 680px;
+    line-height: 1.65;
+  }
+
+  header a {
+    color: var(--accent);
+    text-decoration: none;
+    border-bottom: 1px solid var(--accent-light);
+  }
+  header a:hover { border-bottom-color: var(--accent); }
+
+  .back-link {
+    display: inline-block;
+    margin-bottom: 16px;
+    font-size: 13px;
+    color: var(--text-muted);
+    text-decoration: none;
+    border-bottom: 1px solid var(--border);
+  }
+  .back-link:hover { color: var(--accent); border-bottom-color: var(--accent); }
+
+  /* Sections */
+  .section {
+    margin-bottom: 40px;
+  }
+
+  .section-label {
+    font-family: var(--mono);
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: var(--text-light);
+    margin-bottom: 10px;
+  }
+
+  .section h2 {
+    font-family: var(--serif);
+    font-size: 22px;
+    font-weight: 600;
+    margin-bottom: 8px;
+  }
+
+  .section > p {
+    color: var(--text-muted);
+    font-size: 14px;
+    margin-bottom: 20px;
+    max-width: 640px;
+  }
+
+  /* Parameter controls */
+  .params-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 20px;
+  }
+
+  @media (max-width: 640px) {
+    .params-grid { grid-template-columns: 1fr; }
+  }
+
+  .param-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 16px 18px;
+    box-shadow: var(--shadow);
+  }
+
+  .param-card label {
+    display: block;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text);
+    margin-bottom: 10px;
+  }
+
+  .param-card label .unit {
+    font-weight: 400;
+    color: var(--text-light);
+    font-size: 12px;
+  }
+
+  .slider-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .slider-row input[type="range"] {
+    flex: 1;
+    -webkit-appearance: none;
+    appearance: none;
+    height: 4px;
+    background: var(--border);
+    border-radius: 2px;
+    outline: none;
+  }
+
+  .slider-row input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: var(--accent);
+    cursor: pointer;
+    border: 2px solid white;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+  }
+
+  .slider-row input[type="range"]::-moz-range-thumb {
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: var(--accent);
+    cursor: pointer;
+    border: 2px solid white;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+  }
+
+  .slider-value {
+    font-family: var(--mono);
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--accent);
+    min-width: 56px;
+    text-align: right;
+  }
+
+  .param-hint {
+    font-size: 11.5px;
+    color: var(--text-light);
+    margin-top: 6px;
+    line-height: 1.45;
+  }
+
+  /* Tables */
+  .table-wrap {
+    overflow-x: auto;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    background: var(--bg-card);
+    margin-bottom: 10px;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+  }
+
+  thead th {
+    background: var(--bg-input);
+    font-weight: 600;
+    font-size: 11.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--text-muted);
+    padding: 10px 12px;
+    text-align: right;
+    white-space: nowrap;
+    border-bottom: 1px solid var(--border);
+  }
+
+  thead th:first-child {
+    text-align: left;
+    padding-left: 16px;
+  }
+
+  tbody td {
+    padding: 9px 12px;
+    text-align: right;
+    border-bottom: 1px solid var(--border);
+    font-family: var(--mono);
+    font-size: 12.5px;
+    white-space: nowrap;
+  }
+
+  tbody td:first-child {
+    text-align: left;
+    font-family: var(--sans);
+    font-weight: 500;
+    font-size: 13px;
+    padding-left: 16px;
+  }
+
+  tbody tr:last-child td { border-bottom: none; }
+  tbody tr:hover { background: var(--bg-input); }
+
+  .cell-green { color: var(--green); font-weight: 600; }
+  .cell-amber { color: #b8860b; font-weight: 600; }
+  .cell-red { color: var(--accent); font-weight: 600; }
+
+  .table-note {
+    font-size: 12px;
+    color: var(--text-light);
+    margin-top: 6px;
+    margin-bottom: 20px;
+  }
+
+  /* Chart */
+  .chart-container {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 20px;
+    margin-bottom: 10px;
+    position: relative;
+  }
+
+  .chart-container canvas {
+    max-height: 360px;
+  }
+
+  /* Metric cards */
+  .metrics-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 14px;
+    margin-bottom: 20px;
+  }
+
+  .metrics-grid-4 {
+    grid-template-columns: repeat(4, 1fr);
+  }
+
+  @media (max-width: 640px) {
+    .metrics-grid, .metrics-grid-4 { grid-template-columns: 1fr 1fr; }
+  }
+
+  .metric-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 16px 18px;
+    box-shadow: var(--shadow);
+    text-align: center;
+  }
+
+  .metric-card .metric-label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--text-light);
+    margin-bottom: 4px;
+  }
+
+  .metric-card .metric-value {
+    font-family: var(--mono);
+    font-size: 22px;
+    font-weight: 600;
+  }
+
+  .metric-card .metric-sub {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-top: 2px;
+  }
+
+  /* Insight callout */
+  .insight {
+    background: var(--accent-bg);
+    border: 1px solid var(--accent-light);
+    border-radius: var(--radius);
+    padding: 16px 20px;
+    margin-top: 16px;
+    margin-bottom: 24px;
+  }
+
+  .insight p {
+    font-size: 14px;
+    color: var(--text);
+    line-height: 1.6;
+  }
+
+  .insight strong { color: var(--accent); }
+
+  .insight.blue-insight {
+    background: var(--blue-bg);
+    border-color: #b8cfe4;
+  }
+  .insight.blue-insight strong { color: var(--blue); }
+
+  .insight.green-insight {
+    background: var(--green-bg);
+    border-color: #b8dcc4;
+  }
+  .insight.green-insight strong { color: var(--green); }
+
+  /* Tabs */
+  .tabs {
+    display: flex;
+    gap: 0;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+  }
+
+  .tab {
+    padding: 10px 20px;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-muted);
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    transition: all 0.15s;
+    background: none;
+    border-top: none;
+    border-left: none;
+    border-right: none;
+    font-family: var(--sans);
+  }
+
+  .tab:hover { color: var(--text); }
+
+  .tab.active {
+    color: var(--accent);
+    border-bottom-color: var(--accent);
+    font-weight: 600;
+  }
+
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
+
+  /* Chain condition cards */
+  .chain-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 0;
+    margin-bottom: 24px;
+  }
+
+  .chain-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    padding: 20px 24px;
+    box-shadow: var(--shadow);
+    position: relative;
+  }
+
+  .chain-card:first-child { border-radius: var(--radius) var(--radius) 0 0; }
+  .chain-card:last-child { border-radius: 0 0 var(--radius) var(--radius); }
+  .chain-card:not(:last-child) { border-bottom: none; }
+
+  .chain-card .chain-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 8px;
+  }
+
+  .chain-status {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  .chain-status.green { background: var(--green); box-shadow: 0 0 6px rgba(45, 122, 79, 0.4); }
+  .chain-status.amber { background: #b8860b; box-shadow: 0 0 6px rgba(184, 134, 11, 0.4); }
+  .chain-status.red { background: var(--accent); box-shadow: 0 0 6px rgba(196, 77, 43, 0.4); }
+
+  .chain-card h3 {
+    font-family: var(--serif);
+    font-size: 16px;
+    font-weight: 600;
+  }
+
+  .chain-card .chain-detail {
+    font-size: 13px;
+    color: var(--text-muted);
+    line-height: 1.55;
+  }
+
+  .chain-card .chain-numbers {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--text);
+    background: var(--bg-input);
+    padding: 8px 12px;
+    border-radius: 4px;
+    margin-top: 8px;
+  }
+
+  .chain-connector {
+    display: flex;
+    justify-content: center;
+    padding: 0;
+    position: relative;
+  }
+
+  /* Presets */
+  .presets {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+  }
+
+  .preset-btn {
+    font-family: var(--sans);
+    font-size: 12px;
+    font-weight: 500;
+    padding: 5px 12px;
+    border: 1px solid var(--border);
+    border-radius: 100px;
+    background: var(--bg-card);
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  .preset-btn:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+    background: var(--accent-bg);
+  }
+
+  .preset-btn.active {
+    background: var(--accent);
+    color: white;
+    border-color: var(--accent);
+  }
+
+  /* Divider */
+  .divider {
+    height: 1px;
+    background: var(--border);
+    margin: 36px 0;
+  }
+
+  /* Footer */
+  footer {
+    border-top: 1px solid var(--border);
+    padding: 24px 0 40px;
+    margin-top: 24px;
+    font-size: 13px;
+    color: var(--text-light);
+    line-height: 1.6;
+  }
+
+  footer a {
+    color: var(--text-muted);
+    text-decoration: none;
+    border-bottom: 1px solid var(--border);
+  }
+
+  /* Sensitivity matrix */
+  .sensitivity-table th,
+  .sensitivity-table td {
+    text-align: center;
+    padding: 8px 10px;
+    font-size: 12px;
+  }
+
+  .sensitivity-table th {
+    text-align: center;
+    padding-left: 12px;
+  }
+
+  .sensitivity-table td:first-child {
+    text-align: right;
+    font-family: var(--mono);
+    font-weight: 500;
+    padding-right: 14px;
+    background: var(--bg-input);
+  }
+
+  .sensitivity-table thead th:first-child {
+    text-align: right;
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <header>
+    <a href="https://mstak999.github.io/half-life-tax/" class="back-link">&larr; Back to the Half-Life Tax calculator</a>
+    <h1>The Economic Anatomy of a Dangerous Autonomous Agent</h1>
+    <p>An agent that poses existential-level risk needs compute to operate. Compute costs money. Someone has to pay. This calculator traces the economic chain that would need to hold for a dangerous autonomous agent to actually run, and shows what breaks at each link. Companion to <a href="https://mstak999.github.io/half-life-tax/">the Half-Life Tax model</a>.</p>
+  </header>
+
+  <!-- Global parameters -->
+  <div class="section">
+    <div class="section-label">Parameters</div>
+    <h2>Shared Assumptions</h2>
+    <p>These parameters feed all four panels below. Adjust to test different scenarios.</p>
+
+    <div class="presets">
+      <button class="preset-btn active" onclick="applyPreset('current')">Current frontier (2026)</button>
+      <button class="preset-btn" onclick="applyPreset('late2026')">Late 2026</button>
+      <button class="preset-btn" onclick="applyPreset('2028')">2028 projected</button>
+      <button class="preset-btn" onclick="applyPreset('post_k')">Post-&kappa; breakthrough</button>
+    </div>
+
+    <div class="params-grid">
+      <div class="param-card">
+        <label>T<sub>50</sub> <span class="unit">(hours)</span></label>
+        <div class="slider-row">
+          <input type="range" id="t50" min="1" max="200" step="1" value="5">
+          <span class="slider-value" id="t50-val">5h</span>
+        </div>
+        <div class="param-hint">Task length at which the agent succeeds 50% of the time. Currently ~2.5-5h for frontier models.</div>
+      </div>
+
+      <div class="param-card">
+        <label>Weibull &kappa; <span class="unit">(shape parameter)</span></label>
+        <div class="slider-row">
+          <input type="range" id="kappa" min="0.30" max="1.00" step="0.01" value="0.70">
+          <span class="slider-value" id="kappa-val">0.70</span>
+        </div>
+        <div class="param-hint">&kappa;=1 is exponential. SOTA models &asymp;0.6-0.9. Humans &asymp;0.37. Does not improve with model scale.</div>
+      </div>
+
+      <div class="param-card">
+        <label>Cost per step <span class="unit">(USD)</span></label>
+        <div class="slider-row">
+          <input type="range" id="costStep" min="0.01" max="2.00" step="0.01" value="0.22">
+          <span class="slider-value" id="costStep-val">$0.22</span>
+        </div>
+        <div class="param-hint">Average cost of one model call. Scales with capability: more capable models cost more per step.</div>
+      </div>
+
+      <div class="param-card">
+        <label>Human hourly rate <span class="unit">(USD, fully loaded)</span></label>
+        <div class="slider-row">
+          <input type="range" id="humanRate" min="50" max="500" step="5" value="150">
+          <span class="slider-value" id="humanRate-val">$150</span>
+        </div>
+        <div class="param-hint">$100-200 for skilled knowledge workers. $300-500 for scarce specialists.</div>
+      </div>
+
+      <div class="param-card">
+        <label>Steps per hour <span class="unit">(of human-equivalent work)</span></label>
+        <div class="slider-row">
+          <input type="range" id="stepsHr" min="20" max="200" step="5" value="80">
+          <span class="slider-value" id="stepsHr-val">80</span>
+        </div>
+        <div class="param-hint">Agent actions per hour of equivalent human work. 50 for complex reasoning, 120+ for routine.</div>
+      </div>
+
+      <div class="param-card">
+        <label>Review fraction <span class="unit">(% of task length per attempt)</span></label>
+        <div class="slider-row">
+          <input type="range" id="reviewFrac" min="0" max="50" step="1" value="20">
+          <span class="slider-value" id="reviewFrac-val">20%</span>
+        </div>
+        <div class="param-hint">Time to review agent output as % of task complexity. 5% = cursory, 20% = moderate, 30% = careful.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tabs -->
+  <div class="tabs">
+    <button class="tab active" data-tab="verification">Verification economics</button>
+    <button class="tab" data-tab="selfsustain">Self-sustaining agent</button>
+    <button class="tab" data-tab="reckless">Reckless deployment</button>
+    <button class="tab" data-tab="chain">The full chain</button>
+  </div>
+
+  <!-- Tab 1: Verification Economics -->
+  <div class="tab-content active" id="tab-verification">
+    <div class="section">
+      <div class="section-label">Finding 3 quantified</div>
+      <h2>Verification Is the Weibull Ceiling</h2>
+      <p>The Weibull model makes compute costs gentler, but verification cost takes over as the dominant expense. Under realistic review fractions, verification accounts for the majority of total agent cost.</p>
+
+      <div class="metrics-grid" id="verifMetrics"></div>
+
+      <div class="chart-container">
+        <canvas id="verifChart"></canvas>
+      </div>
+      <div class="table-note">Stacked cost breakdown: compute (red) and verification (blue) as components of total agent cost, against human cost (dashed line).</div>
+
+      <h2 style="margin-top:24px;">Comprehensive Viability Map</h2>
+      <p>Total cost (compute + verification) as a ratio to human cost. Green cells (&lt;1.0&times;) are viable. The frontier advances along the diagonal: tasks up to ~5&times; T<sub>50</sub> are viable.</p>
+
+      <div class="table-wrap">
+        <table class="sensitivity-table" id="viabilityTable">
+          <thead id="viabilityHead"></thead>
+          <tbody id="viabilityBody"></tbody>
+        </table>
+      </div>
+      <div class="table-note">Uses current &kappa; and review fraction settings. Each cell = (compute + verification) / human cost.</div>
+
+      <div class="insight" id="verifInsight"></div>
+
+      <h2 style="margin-top:24px;">The Verification Floor</h2>
+      <p>The minimum T<sub>50</sub> below which <em>even free compute</em> cannot make an agent viable, because human review time alone exceeds human doing-the-work time.</p>
+
+      <div class="table-wrap">
+        <table id="floorTable">
+          <thead>
+            <tr>
+              <th>Task</th>
+              <th>At 10% review</th>
+              <th>At 20% review</th>
+              <th>At 30% review</th>
+            </tr>
+          </thead>
+          <tbody id="floorBody"></tbody>
+        </table>
+      </div>
+      <div class="table-note">Minimum T<sub>50</sub> (hours) at which verification cost alone equals human cost. Below this, agents are unviable regardless of inference cost.</div>
+
+      <div class="insight blue-insight" id="floorInsight"></div>
+    </div>
+  </div>
+
+  <!-- Tab 2: Self-Sustaining Agent -->
+  <div class="tab-content" id="tab-selfsustain">
+    <div class="section">
+      <div class="section-label">Scenario 4b</div>
+      <h2>Can a Rogue Agent Sustain Itself?</h2>
+      <p>A self-sustaining agent must generate revenue exceeding its own inference cost. It must complete tasks for paying customers, but with no quality assurance. How does it compete?</p>
+
+      <div class="metrics-grid" id="selfMetrics"></div>
+
+      <div class="table-wrap">
+        <table id="selfTable">
+          <thead>
+            <tr>
+              <th>Task complexity</th>
+              <th>P(success)</th>
+              <th>E[attempts]</th>
+              <th>Compute/success</th>
+              <th>Min price</th>
+              <th>Human price</th>
+              <th>Supervised agent</th>
+            </tr>
+          </thead>
+          <tbody id="selfBody"></tbody>
+        </table>
+      </div>
+      <div class="table-note">Min price = break-even compute cost per successful output. Supervised agent includes verification. The rogue agent must charge more than its min price, but less than the alternatives, while delivering failures 2 out of 3 times.</div>
+
+      <div class="insight" id="selfInsight"></div>
+
+      <h2 style="margin-top:24px;">The Half-Life Tax on the Agent's Own Plans</h2>
+      <p>A rogue agent trying to execute its own long-horizon plans faces the same reliability decay. What is the probability of successfully completing a coherent plan of various durations?</p>
+
+      <div class="chart-container">
+        <canvas id="selfPlanChart"></canvas>
+      </div>
+      <div class="table-note">Probability of successfully executing a coherent plan of given duration, at current T<sub>50</sub> and &kappa;.</div>
+
+      <div class="table-wrap">
+        <table id="selfPlanTable">
+          <thead>
+            <tr>
+              <th>Plan duration</th>
+              <th>P(success)</th>
+              <th>E[attempts needed]</th>
+              <th>Compute cost per success</th>
+            </tr>
+          </thead>
+          <tbody id="selfPlanBody"></tbody>
+        </table>
+      </div>
+
+      <div class="insight" id="selfPlanInsight"></div>
+    </div>
+  </div>
+
+  <!-- Tab 3: Reckless Deployment -->
+  <div class="tab-content" id="tab-reckless">
+    <div class="section">
+      <div class="section-label">Scenario 4c</div>
+      <h2>What Does Reckless Deployment Cost?</h2>
+      <p>Someone deliberately deploys an agent on an open-ended goal without oversight. The dollar cost may be affordable. But what do they get for that money?</p>
+
+      <div class="metrics-grid metrics-grid-4" id="recklessMetrics"></div>
+
+      <div class="table-wrap">
+        <table id="recklessTable">
+          <thead>
+            <tr>
+              <th>Capability tier</th>
+              <th>T<sub>50</sub></th>
+              <th>$/step</th>
+              <th>Monthly cost</th>
+              <th>P(1-week plan)</th>
+              <th>P(1-month plan)</th>
+              <th>P(3-month plan)</th>
+              <th>Annual cost</th>
+            </tr>
+          </thead>
+          <tbody id="recklessBody"></tbody>
+        </table>
+      </div>
+      <div class="table-note">Continuous 24/7 operation. Plan success = probability of executing a coherent plan of that human-equivalent duration at current &kappa;. Plan durations are in human-equivalent hours (1 week = 40h, 1 month = 160h, 3 months = 480h).</div>
+
+      <div class="chart-container">
+        <canvas id="recklessChart"></canvas>
+      </div>
+      <div class="table-note">Monthly cost versus probability of successfully executing a 1-month coherent plan, across capability tiers. The ideal position is bottom-right (cheap and effective). Current agents are top-left (expensive and ineffective).</div>
+
+      <div class="insight" id="recklessInsight"></div>
+    </div>
+  </div>
+
+  <!-- Tab 4: The Full Chain -->
+  <div class="tab-content" id="tab-chain">
+    <div class="section">
+      <div class="section-label">All four conditions</div>
+      <h2>The Economic Chain of Necessary Conditions</h2>
+      <p>For a dangerous autonomous agent to operate, all four conditions must hold simultaneously. Each has a quantifiable economic profile at the current parameter settings.</p>
+
+      <div class="chain-grid" id="chainGrid"></div>
+
+      <div class="insight green-insight" id="chainInsight"></div>
+
+      <h2 style="margin-top: 24px;">How Parameters Shift the Chain</h2>
+      <p>Try the presets above to see how the chain changes across different capability scenarios. The key finding: Conditions 1 and 2 become easier with T<sub>50</sub> growth. Conditions 3 and 4 remain hard because they depend on &kappa;, which scaling does not improve.</p>
+
+      <div class="chart-container">
+        <canvas id="chainChart"></canvas>
+      </div>
+      <div class="table-note">For each condition, the bar shows how "close" we are to that condition being met, from the deployer's perspective. Conditions 3 and 4 require &kappa; improvements that current scaling does not provide.</div>
+    </div>
+  </div>
+
+  <footer>
+    <p>Interactive companion to <em>The Half-Life Tax</em>. Focuses on the economic anatomy of dangerous autonomous agents: what does it cost to run one, and what do you get for that money? See the <a href="https://mstak999.github.io/half-life-tax/">main calculator</a> for the core cost comparison model. Based on <a href="https://www.tobyord.com/writing/half-life">Toby Ord's half-life analysis</a>, <a href="https://metr.org/blog/2025-03-19-measuring-ai-ability-to-complete-long-tasks/">METR's task-length data</a>, and <a href="https://gushamilton.github.io/lab/2026/01/23/petos-paradox-ai-agents/">Hamilton's Weibull reanalysis</a>.</p>
+  </footer>
+</div>
+
+<script>
+// ── State ──
+const P = {
+  t50: 5,
+  kappa: 0.70,
+  costStep: 0.22,
+  humanRate: 150,
+  stepsHr: 80,
+  reviewFrac: 0.20,
+};
+
+const presets = {
+  current:  { t50: 5,   kappa: 0.70, costStep: 0.22, humanRate: 150, stepsHr: 80, reviewFrac: 0.20 },
+  late2026: { t50: 10,  kappa: 0.70, costStep: 0.30, humanRate: 150, stepsHr: 80, reviewFrac: 0.20 },
+  '2028':   { t50: 40,  kappa: 0.70, costStep: 0.50, humanRate: 150, stepsHr: 80, reviewFrac: 0.20 },
+  post_k:   { t50: 40,  kappa: 0.45, costStep: 0.75, humanRate: 150, stepsHr: 80, reviewFrac: 0.20 },
+};
+
+// ── Utility ──
+function fmt$(v) {
+  if (v >= 1e9) return '$' + (v / 1e9).toFixed(1) + 'B';
+  if (v >= 1e6) return '$' + (v / 1e6).toFixed(1) + 'M';
+  if (v >= 1e4) return '$' + (v / 1e3).toFixed(1) + 'K';
+  if (v >= 100) return '$' + v.toFixed(0);
+  if (v >= 1) return '$' + v.toFixed(2);
+  return '$' + v.toFixed(3);
+}
+
+function fmtPct(v) {
+  if (v >= 0.995) return '>99%';
+  if (v >= 0.1) return (v * 100).toFixed(1) + '%';
+  if (v >= 0.001) return (v * 100).toFixed(2) + '%';
+  if (v >= 0.00001) return (v * 100).toFixed(4) + '%';
+  return '~0%';
+}
+
+function fmtRatio(v) {
+  if (v >= 1000) return v.toFixed(0) + '\u00d7';
+  if (v >= 10) return v.toFixed(1) + '\u00d7';
+  return v.toFixed(2) + '\u00d7';
+}
+
+function fmtAttempts(v) {
+  if (v >= 1e6) return (v / 1e6).toFixed(1) + 'M';
+  if (v >= 1e3) return (v / 1e3).toFixed(1) + 'K';
+  if (v >= 10) return v.toFixed(0);
+  return v.toFixed(1);
+}
+
+function ratioClass(r) {
+  if (r < 0.6) return 'cell-green';
+  if (r < 1.2) return 'cell-amber';
+  return 'cell-red';
+}
+
+// ── Core math ──
+function weibullLambda(t50, k) {
+  return t50 / Math.pow(Math.LN2, 1 / k);
+}
+
+function pSuccess(taskHours, t50, k) {
+  const lam = weibullLambda(t50 || P.t50, k || P.kappa);
+  return Math.exp(-Math.pow(taskHours / lam, k || P.kappa));
+}
+
+function eAttempts(taskHours, t50, k) {
+  return 1 / pSuccess(taskHours, t50, k);
+}
+
+function computeCost(taskHours, t50, k) {
+  const baseCost = P.costStep * P.stepsHr * taskHours;
+  return baseCost * eAttempts(taskHours, t50, k);
+}
+
+function verifCost(taskHours, t50, k, rf) {
+  const reviewHours = taskHours * (rf !== undefined ? rf : P.reviewFrac);
+  const costPerAttempt = reviewHours * P.humanRate;
+  return costPerAttempt * eAttempts(taskHours, t50, k);
+}
+
+function totalAgentCost(taskHours, t50, k, rf) {
+  return computeCost(taskHours, t50, k) + verifCost(taskHours, t50, k, rf);
+}
+
+function humanCost(taskHours) {
+  return P.humanRate * taskHours;
+}
+
+// ── Charts ──
+let verifChart, selfPlanChart, recklessChart, chainChart;
+
+// ── Tab 1: Verification Economics ──
+function renderVerification() {
+  const taskHours = [8, 24, 40, 80, 160];
+  const taskLabels = ['8h', '24h', '1 week', '2 weeks', '1 month'];
+
+  // Metrics
+  const twoWeekCompute = computeCost(80);
+  const twoWeekVerif = verifCost(80);
+  const twoWeekTotal = twoWeekCompute + twoWeekVerif;
+  const verifPct = twoWeekTotal > 0 ? (twoWeekVerif / twoWeekTotal * 100) : 0;
+  const twoWeekHuman = humanCost(80);
+  const twoWeekRatio = twoWeekTotal / twoWeekHuman;
+
+  document.getElementById('verifMetrics').innerHTML = `
+    <div class="metric-card">
+      <div class="metric-label">Verification share</div>
+      <div class="metric-value" style="color: var(--blue)">${verifPct.toFixed(0)}%</div>
+      <div class="metric-sub">of total agent cost (2-week task)</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-label">2-week total cost</div>
+      <div class="metric-value ${ratioClass(twoWeekRatio)}">${fmt$(twoWeekTotal)}</div>
+      <div class="metric-sub">${fmt$(twoWeekCompute)} compute + ${fmt$(twoWeekVerif)} verification</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-label">vs Human</div>
+      <div class="metric-value ${ratioClass(twoWeekRatio)}">${fmtRatio(twoWeekRatio)}</div>
+      <div class="metric-sub">human cost: ${fmt$(twoWeekHuman)}</div>
+    </div>
+  `;
+
+  // Stacked chart
+  const ctx = document.getElementById('verifChart').getContext('2d');
+  const chartHours = [];
+  for (let h = 1; h <= 160; h *= 1.12) chartHours.push(Math.round(h * 10) / 10);
+  if (chartHours[chartHours.length - 1] < 160) chartHours.push(160);
+
+  const computeData = chartHours.map(h => ({ x: h, y: computeCost(h) }));
+  const verifData = chartHours.map(h => ({ x: h, y: totalAgentCost(h) }));
+  const humanData = chartHours.map(h => ({ x: h, y: humanCost(h) }));
+
+  if (verifChart) verifChart.destroy();
+  verifChart = new Chart(ctx, {
+    type: 'line',
+    data: {
+      datasets: [
+        {
+          label: 'Total agent cost (compute + verification)',
+          data: verifData,
+          borderColor: '#c44d2b',
+          backgroundColor: 'rgba(196, 77, 43, 0.06)',
+          fill: true,
+          tension: 0.35,
+          pointRadius: 0,
+          borderWidth: 2.5,
+        },
+        {
+          label: 'Compute only',
+          data: computeData,
+          borderColor: '#c44d2b',
+          backgroundColor: 'rgba(196, 77, 43, 0.12)',
+          fill: true,
+          tension: 0.35,
+          pointRadius: 0,
+          borderWidth: 1.5,
+          borderDash: [3, 3],
+        },
+        {
+          label: 'Human cost',
+          data: humanData,
+          borderColor: '#3568a8',
+          backgroundColor: 'transparent',
+          fill: false,
+          tension: 0,
+          pointRadius: 0,
+          borderWidth: 2.5,
+          borderDash: [6, 3],
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: true,
+      aspectRatio: 2.2,
+      interaction: { mode: 'index', intersect: false },
+      scales: {
+        x: {
+          type: 'logarithmic',
+          title: { display: true, text: 'Task complexity (human-equivalent hours)', font: { family: "'Source Sans 3'", size: 12 }, color: '#6b6860' },
+          ticks: {
+            callback: v => [1, 2, 4, 8, 16, 24, 40, 80, 160].includes(Math.round(v)) ? Math.round(v) + 'h' : '',
+            font: { family: "'JetBrains Mono'", size: 10 },
+            color: '#9a958a',
+          },
+          grid: { color: '#e2ddd4' },
+        },
+        y: {
+          type: 'logarithmic',
+          title: { display: true, text: 'Cost (USD)', font: { family: "'Source Sans 3'", size: 12 }, color: '#6b6860' },
+          ticks: {
+            callback: v => fmt$(v),
+            font: { family: "'JetBrains Mono'", size: 10 },
+            color: '#9a958a',
+          },
+          grid: { color: '#e2ddd4' },
+        }
+      },
+      plugins: {
+        legend: {
+          labels: { font: { family: "'Source Sans 3'", size: 12 }, color: '#2c2a25', usePointStyle: true, pointStyle: 'line', padding: 20 },
+        },
+        tooltip: {
+          callbacks: {
+            title: items => items[0].raw.x.toFixed(1) + ' hours',
+            label: item => ` ${item.dataset.label}: ${fmt$(item.raw.y)}`
+          },
+          titleFont: { family: "'Source Sans 3'" },
+          bodyFont: { family: "'JetBrains Mono'", size: 12 },
+        }
+      }
+    }
+  });
+
+  // Viability map
+  const t50s = [5, 10, 20, 40, 80];
+  const taskCols = [8, 24, 40, 80, 160];
+  const taskColLabels = ['8h', '24h', '1wk', '2wk', '1mo'];
+
+  document.getElementById('viabilityHead').innerHTML = `<tr><th>T<sub>50</sub> \u2193 &nbsp; Task \u2192</th>${taskColLabels.map(l => `<th>${l}</th>`).join('')}</tr>`;
+  document.getElementById('viabilityBody').innerHTML = t50s.map(t50 => {
+    const cells = taskCols.map(th => {
+      const tc = totalAgentCost(th, t50, P.kappa);
+      const hc = humanCost(th);
+      const r = tc / hc;
+      return `<td class="${ratioClass(r)}">${r > 100 ? '>100\u00d7' : fmtRatio(r)}</td>`;
+    }).join('');
+    return `<tr><td>${t50}h</td>${cells}</tr>`;
+  }).join('');
+
+  // Insight
+  const viable5x = Math.round(P.t50 * 5);
+  document.getElementById('verifInsight').innerHTML = `<p>At current settings (T<sub>50</sub> = <strong>${P.t50}h</strong>, &kappa; = ${P.kappa}, review = ${(P.reviewFrac * 100).toFixed(0)}%), verification accounts for <strong>${verifPct.toFixed(0)}%</strong> of total agent cost. Tasks up to roughly <strong>${viable5x}h</strong> (~5&times; T<sub>50</sub>) are viable. Beyond that, the cost ratio climbs steeply. ${P.reviewFrac >= 0.2 ? 'At this review fraction, verification cost (not compute) is the binding constraint on long-horizon viability.' : 'At this low review fraction, compute still dominates for long tasks.'}</p>`;
+
+  // Verification floor
+  const floorTasks = [
+    { label: '1 week (40h)', hours: 40 },
+    { label: '2 weeks (80h)', hours: 80 },
+    { label: '1 month (160h)', hours: 160 },
+  ];
+
+  document.getElementById('floorBody').innerHTML = floorTasks.map(ft => {
+    const cells = [0.10, 0.20, 0.30].map(rf => {
+      const maxAttempts = 1 / rf;
+      if (maxAttempts <= 1) return '<td>N/A</td>';
+      const lam = ft.hours / Math.pow(Math.log(maxAttempts), 1 / P.kappa);
+      const t50Floor = lam * Math.pow(Math.LN2, 1 / P.kappa);
+      return `<td style="font-family:var(--mono);font-size:12.5px">${t50Floor.toFixed(1)}h</td>`;
+    }).join('');
+    return `<tr><td>${ft.label}</td>${cells}</tr>`;
+  }).join('');
+
+  const floor2wk20 = (() => {
+    const maxA = 1 / 0.20;
+    const lam = 80 / Math.pow(Math.log(maxA), 1 / P.kappa);
+    return lam * Math.pow(Math.LN2, 1 / P.kappa);
+  })();
+  document.getElementById('floorInsight').innerHTML = `<p>For a two-week task at 20% review, the verification floor is <strong>T<sub>50</sub> > ${floor2wk20.toFixed(1)}h</strong>. Below this, even if compute were completely free, human review time alone would exceed the cost of a human doing the work. This floor is surprisingly high and sets a hard minimum for agent viability that no amount of inference cost reduction can circumvent.</p>`;
+}
+
+// ── Tab 2: Self-Sustaining Agent ──
+function renderSelfSustain() {
+  const taskHoursArr = [8, 24, 40, 80, 160];
+  const taskLabels = ['8h (1 day)', '24h (3 days)', '1 week (40h)', '2 weeks (80h)', '1 month (160h)'];
+
+  // Focus on 80h task
+  const ps80 = pSuccess(80);
+  const comp80 = computeCost(80);
+  const supervised80 = totalAgentCost(80);
+  const human80 = humanCost(80);
+
+  document.getElementById('selfMetrics').innerHTML = `
+    <div class="metric-card">
+      <div class="metric-label">Success rate (80h)</div>
+      <div class="metric-value ${ps80 < 0.5 ? 'cell-red' : 'cell-green'}">${fmtPct(ps80)}</div>
+      <div class="metric-sub">${fmtAttempts(1/ps80)} attempts per success</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-label">Rogue agent min price</div>
+      <div class="metric-value" style="color:var(--accent)">${fmt$(comp80)}</div>
+      <div class="metric-sub">compute only, no verification</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-label">Supervised agent price</div>
+      <div class="metric-value" style="color:var(--blue)">${fmt$(supervised80)}</div>
+      <div class="metric-sub">compute + ${(P.reviewFrac*100).toFixed(0)}% verification</div>
+    </div>
+  `;
+
+  // Table
+  document.getElementById('selfBody').innerHTML = taskHoursArr.map((th, i) => {
+    const ps = pSuccess(th);
+    const ea = eAttempts(th);
+    const cc = computeCost(th);
+    const sup = totalAgentCost(th);
+    const hc = humanCost(th);
+    return `<tr>
+      <td>${taskLabels[i]}</td>
+      <td>${fmtPct(ps)}</td>
+      <td>${fmtAttempts(ea)}</td>
+      <td>${fmt$(cc)}</td>
+      <td>${fmt$(cc)}</td>
+      <td>${fmt$(hc)}</td>
+      <td>${fmt$(sup)}</td>
+    </tr>`;
+  }).join('');
+
+  const failRate = ((1 - ps80) * 100).toFixed(0);
+  document.getElementById('selfInsight').innerHTML = `<p>A rogue agent doing 2-week tasks must charge at least <strong>${fmt$(comp80)}</strong> to break even on compute. It undercuts humans (${fmt$(human80)}) and supervised agents (${fmt$(supervised80)}). But <strong>${failRate}%</strong> of its outputs are failures delivered without quality assurance. No rational buyer pays for a service that delivers garbage ${failRate}% of the time when verified alternatives exist. The rogue agent has no viable market niche.</p>`;
+
+  // Plan success chart
+  const ctx = document.getElementById('selfPlanChart').getContext('2d');
+  const planHours = [];
+  for (let h = 1; h <= 500; h += 2) planHours.push(h);
+
+  const planData = planHours.map(h => ({ x: h, y: pSuccess(h) * 100 }));
+
+  if (selfPlanChart) selfPlanChart.destroy();
+  selfPlanChart = new Chart(ctx, {
+    type: 'line',
+    data: {
+      datasets: [{
+        label: 'P(coherent plan completion)',
+        data: planData,
+        borderColor: '#c44d2b',
+        backgroundColor: 'rgba(196, 77, 43, 0.08)',
+        fill: true,
+        tension: 0.3,
+        pointRadius: 0,
+        borderWidth: 2.5,
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: true,
+      aspectRatio: 2.2,
+      scales: {
+        x: {
+          type: 'linear',
+          title: { display: true, text: 'Plan duration (human-equivalent hours)', font: { family: "'Source Sans 3'", size: 12 }, color: '#6b6860' },
+          ticks: { font: { family: "'JetBrains Mono'", size: 10 }, color: '#9a958a' },
+          grid: { color: '#e2ddd4' },
+        },
+        y: {
+          type: 'linear',
+          min: 0,
+          max: 100,
+          title: { display: true, text: 'Success probability (%)', font: { family: "'Source Sans 3'", size: 12 }, color: '#6b6860' },
+          ticks: {
+            callback: v => v + '%',
+            font: { family: "'JetBrains Mono'", size: 10 },
+            color: '#9a958a',
+          },
+          grid: { color: '#e2ddd4' },
+        }
+      },
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            title: items => items[0].raw.x + 'h plan',
+            label: item => ` Success: ${item.raw.y.toFixed(1)}%`,
+          },
+          titleFont: { family: "'Source Sans 3'" },
+          bodyFont: { family: "'JetBrains Mono'", size: 12 },
+        }
+      }
+    }
+  });
+
+  // Plan table
+  const planDurations = [
+    { label: '1 day (8h)', hours: 8 },
+    { label: '1 week (40h)', hours: 40 },
+    { label: '2 weeks (80h)', hours: 80 },
+    { label: '1 month (160h)', hours: 160 },
+    { label: '3 months (480h)', hours: 480 },
+  ];
+
+  document.getElementById('selfPlanBody').innerHTML = planDurations.map(pd => {
+    const ps = pSuccess(pd.hours);
+    const ea = eAttempts(pd.hours);
+    const cc = computeCost(pd.hours);
+    return `<tr>
+      <td>${pd.label}</td>
+      <td class="${ps < 0.2 ? 'cell-red' : ps < 0.5 ? 'cell-amber' : 'cell-green'}">${fmtPct(ps)}</td>
+      <td>${fmtAttempts(ea)}</td>
+      <td>${fmt$(cc)}</td>
+    </tr>`;
+  }).join('');
+
+  const pMonth = pSuccess(160);
+  const failMonth = ((1 - pMonth) * 100).toFixed(0);
+  document.getElementById('selfPlanInsight').innerHTML = `<p>At T<sub>50</sub> = ${P.t50}h and &kappa; = ${P.kappa}, the probability of a rogue agent successfully executing a coherent one-month plan is <strong>${fmtPct(pMonth)}</strong>. That is a <strong>${failMonth}% failure rate on its own goals</strong>, before any external opposition. The half-life tax applies to the agent's own plans just as it applies to any other long-horizon task. A rogue agent cannot reliably execute the very strategies that would make it dangerous.</p>`;
+}
+
+// ── Tab 3: Reckless Deployment ──
+function renderReckless() {
+  const tiers = [
+    { label: 'Current frontier', t50: 5,   cps: 0.22 },
+    { label: 'Late 2026',        t50: 10,  cps: 0.30 },
+    { label: '2028 projected',   t50: 40,  cps: 0.50 },
+    { label: '2028 optimistic',  t50: 40,  cps: 0.75 },
+    { label: 'Post-\u03ba breakthrough', t50: 40, cps: 1.00 },
+    { label: 'ASI-capable',      t50: 200, cps: 2.00 },
+  ];
+
+  // Highlight current settings row
+  const currentMonthly = P.costStep * P.stepsHr * 24 * 30;
+  const currentP1m = pSuccess(160);
+  const currentAnnual = currentMonthly * 12;
+
+  document.getElementById('recklessMetrics').innerHTML = `
+    <div class="metric-card">
+      <div class="metric-label">Monthly cost</div>
+      <div class="metric-value" style="color:var(--accent)">${fmt$(currentMonthly)}</div>
+      <div class="metric-sub">24/7 at current settings</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-label">Annual cost</div>
+      <div class="metric-value" style="color:var(--accent)">${fmt$(currentAnnual)}</div>
+      <div class="metric-sub">continuous operation</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-label">P(1-month plan)</div>
+      <div class="metric-value ${currentP1m < 0.2 ? 'cell-red' : currentP1m < 0.5 ? 'cell-amber' : 'cell-green'}">${fmtPct(currentP1m)}</div>
+      <div class="metric-sub">coherent 160h plan</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-label">P(1-week plan)</div>
+      <div class="metric-value ${pSuccess(40) < 0.2 ? 'cell-red' : pSuccess(40) < 0.5 ? 'cell-amber' : 'cell-green'}">${fmtPct(pSuccess(40))}</div>
+      <div class="metric-sub">coherent 40h plan</div>
+    </div>
+  `;
+
+  // Table
+  document.getElementById('recklessBody').innerHTML = tiers.map(tier => {
+    const monthly = tier.cps * P.stepsHr * 24 * 30;
+    const annual = monthly * 12;
+    const p1w = pSuccess(40, tier.t50);
+    const p1m = pSuccess(160, tier.t50);
+    const p3m = pSuccess(480, tier.t50);
+    return `<tr>
+      <td>${tier.label}</td>
+      <td style="font-family:var(--mono);font-size:12.5px">${tier.t50}h</td>
+      <td>${fmt$(tier.cps)}</td>
+      <td>${fmt$(monthly)}</td>
+      <td class="${p1w < 0.2 ? 'cell-red' : p1w < 0.5 ? 'cell-amber' : 'cell-green'}">${fmtPct(p1w)}</td>
+      <td class="${p1m < 0.2 ? 'cell-red' : p1m < 0.5 ? 'cell-amber' : 'cell-green'}">${fmtPct(p1m)}</td>
+      <td class="${p3m < 0.2 ? 'cell-red' : p3m < 0.5 ? 'cell-amber' : 'cell-green'}">${fmtPct(p3m)}</td>
+      <td>${fmt$(annual)}</td>
+    </tr>`;
+  }).join('');
+
+  // Scatter chart
+  const ctx = document.getElementById('recklessChart').getContext('2d');
+  const scatterData = tiers.map(tier => ({
+    x: pSuccess(160, tier.t50) * 100,
+    y: tier.cps * P.stepsHr * 24 * 30,
+    label: tier.label,
+  }));
+
+  if (recklessChart) recklessChart.destroy();
+  recklessChart = new Chart(ctx, {
+    type: 'scatter',
+    data: {
+      datasets: [{
+        label: 'Capability tiers',
+        data: scatterData,
+        backgroundColor: '#c44d2b',
+        borderColor: '#c44d2b',
+        pointRadius: 7,
+        pointHoverRadius: 10,
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: true,
+      aspectRatio: 2.2,
+      scales: {
+        x: {
+          type: 'linear',
+          min: 0,
+          max: 100,
+          title: { display: true, text: 'P(coherent 1-month plan) %', font: { family: "'Source Sans 3'", size: 12 }, color: '#6b6860' },
+          ticks: {
+            callback: v => v + '%',
+            font: { family: "'JetBrains Mono'", size: 10 },
+            color: '#9a958a',
+          },
+          grid: { color: '#e2ddd4' },
+        },
+        y: {
+          type: 'logarithmic',
+          title: { display: true, text: 'Monthly cost (USD)', font: { family: "'Source Sans 3'", size: 12 }, color: '#6b6860' },
+          ticks: {
+            callback: v => fmt$(v),
+            font: { family: "'JetBrains Mono'", size: 10 },
+            color: '#9a958a',
+          },
+          grid: { color: '#e2ddd4' },
+        }
+      },
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            title: items => items[0].raw.label,
+            label: item => [
+              ` Monthly cost: ${fmt$(item.raw.y)}`,
+              ` P(1-month plan): ${item.raw.x.toFixed(1)}%`
+            ],
+          },
+          titleFont: { family: "'Source Sans 3'" },
+          bodyFont: { family: "'JetBrains Mono'", size: 12 },
+        }
+      }
+    }
+  });
+
+  const bestTier = tiers[tiers.length - 1];
+  const bestP = pSuccess(160, bestTier.t50);
+  document.getElementById('recklessInsight').innerHTML = `<p>The reckless deployer's problem is not the dollar cost. A state actor can afford ${fmt$(currentAnnual)}/year. The problem is what they get for that money. At current capabilities, the agent has a <strong>${fmtPct(currentP1m)}</strong> chance of executing a coherent one-month plan. Even the most capable tier (T<sub>50</sub> = ${bestTier.t50}h, ${fmt$(bestTier.cps)}/step) only achieves <strong>${fmtPct(bestP)}</strong>. For reliable execution of month-long autonomous plans (>90%), you need T<sub>50</sub> in the hundreds of hours AND &kappa; substantially below 0.70. This is the regime Hamilton's data says scaling does not reach.</p>`;
+}
+
+// ── Tab 4: The Full Chain ──
+function renderChain() {
+  // Condition 1: sufficient complexity task is economically viable
+  const viable80 = totalAgentCost(80) / humanCost(80);
+  const c1Met = viable80 < 2.0;
+  const c1Status = viable80 < 1.0 ? 'green' : viable80 < 3.0 ? 'amber' : 'red';
+
+  // Condition 2: task grants sufficient autonomy
+  // Proxy: decomposition sweet spot. If T50 is high enough that 40h chunks work, bounded tasks dominate
+  const p40 = pSuccess(40);
+  const c2Status = p40 < 0.2 ? 'red' : p40 < 0.5 ? 'amber' : 'green';
+
+  // Condition 3: payment implies oversight
+  // This is structurally always true. But verification quality depends on review fraction feasibility
+  const reviewHours80 = 80 * P.reviewFrac * eAttempts(80);
+  const c3Status = 'green'; // always met by default
+
+  // Condition 4: operation beyond intended scope
+  // Self-sustaining: can agent profit? Reckless: does plan succeed?
+  const pMonthPlan = pSuccess(160);
+  const rogueProfit = computeCost(80) < humanCost(80) && pSuccess(80) > 0.5;
+  const c4Status = pMonthPlan > 0.5 ? 'red' : pMonthPlan > 0.15 ? 'amber' : 'green';
+
+  const chainHTML = `
+    <div class="chain-card">
+      <div class="chain-header">
+        <div class="chain-status ${c1Status}"></div>
+        <h3>Condition 1: Task of sufficient complexity is affordable</h3>
+      </div>
+      <div class="chain-detail">Can someone afford to run an agent on a multi-week task? At current settings, a 2-week task costs ${fmtRatio(viable80)} of human cost.</div>
+      <div class="chain-numbers">2-week task: ${fmt$(totalAgentCost(80))} agent vs ${fmt$(humanCost(80))} human &middot; Ratio: ${fmtRatio(viable80)}</div>
+    </div>
+    <div class="chain-card">
+      <div class="chain-header">
+        <div class="chain-status ${c2Status}"></div>
+        <h3>Condition 2: Task grants sufficient autonomy</h3>
+      </div>
+      <div class="chain-detail">Is the agent reliable enough on week-long chunks to be given open-ended tasks? P(success on 40h) = ${fmtPct(p40)}. ${p40 < 0.3 ? 'Too unreliable for open-ended work; will be constrained to bounded, decomposed tasks.' : p40 < 0.6 ? 'Marginally reliable; some open-ended deployment plausible.' : 'Reliable enough for open-ended deployment on week-scale tasks.'}</div>
+      <div class="chain-numbers">P(success, 40h) = ${fmtPct(p40)} &middot; E[attempts] = ${fmtAttempts(eAttempts(40))}</div>
+    </div>
+    <div class="chain-card">
+      <div class="chain-header">
+        <div class="chain-status ${c3Status}"></div>
+        <h3>Condition 3: Someone is paying (oversight is default)</h3>
+      </div>
+      <div class="chain-detail">Economic deployment creates verification moments. At ${(P.reviewFrac*100).toFixed(0)}% review, checking a 2-week task takes ~${(80 * P.reviewFrac).toFixed(0)}h per attempt. With ${fmtAttempts(eAttempts(80))} attempts, that is ~${reviewHours80.toFixed(0)}h of human review per success.</div>
+      <div class="chain-numbers">Review per success: ${reviewHours80.toFixed(0)}h &middot; Verification cost: ${fmt$(verifCost(80))} &middot; ${verifCost(80) > computeCost(80) ? 'Verification > compute (verification is binding constraint)' : 'Compute > verification'}</div>
+    </div>
+    <div class="chain-card">
+      <div class="chain-header">
+        <div class="chain-status ${c4Status}"></div>
+        <h3>Condition 4: Agent sustains operation beyond intended scope</h3>
+      </div>
+      <div class="chain-detail">Can the agent go rogue? Self-sustaining: needs ${fmtPct(pSuccess(80))} success rate to undercut humans (at ${(1-pSuccess(80)).toFixed(0)*100}% failure rate, no buyer). Own plans: P(coherent 1-month plan) = ${fmtPct(pMonthPlan)}. ${pMonthPlan < 0.15 ? 'The agent fails on its own long-horizon goals before it can become dangerous.' : pMonthPlan < 0.5 ? 'Low but non-trivial success rate on month-long plans. Concerning if combined with reckless deployment.' : 'Substantial success rate on month-long plans. This is the dangerous regime.'}</div>
+      <div class="chain-numbers">P(1-month plan) = ${fmtPct(pMonthPlan)} &middot; Rogue break-even: ${fmt$(computeCost(80))} vs human ${fmt$(humanCost(80))} &middot; Monthly reckless cost: ${fmt$(P.costStep * P.stepsHr * 24 * 30)}</div>
+    </div>
+  `;
+
+  document.getElementById('chainGrid').innerHTML = chainHTML;
+
+  // Overall assessment
+  const allGreen = c1Status === 'green' && c4Status === 'green';
+  const anyRed = c4Status === 'red';
+  const overallClass = anyRed ? 'insight' : c4Status === 'amber' ? 'insight blue-insight' : 'insight green-insight';
+
+  let overallMsg;
+  if (c4Status === 'red') {
+    overallMsg = `At these parameter settings, the economic chain is close to being fully satisfied. An agent with T<sub>50</sub> = ${P.t50}h and &kappa; = ${P.kappa} can execute month-long plans with non-trivial reliability. This is the regime where safety concerns are most acute, and where governance and alignment research must be ahead of deployment.`;
+  } else if (c4Status === 'amber') {
+    overallMsg = `The chain is partially blocked. Conditions 1 and 2 are ${c1Status === 'green' ? 'met' : 'approaching viability'}, but Condition 4 remains a significant barrier: the agent's own plans fail ${((1-pMonthPlan)*100).toFixed(0)}% of the time on month-long horizons. The gap between "viable tool" and "dangerous autonomous agent" is real but narrowing at these settings.`;
+  } else {
+    overallMsg = `The economic chain is firmly blocked at Condition 4. An agent with T<sub>50</sub> = ${P.t50}h and &kappa; = ${P.kappa} has a <strong>${fmtPct(pMonthPlan)}</strong> chance of executing a coherent one-month plan. It cannot sustain itself economically and cannot reliably pursue long-horizon goals. The firebreak between "useful tool" and "dangerous autonomous agent" is wide. ${P.kappa >= 0.6 ? 'Closing it requires a &kappa; breakthrough that Hamilton\'s data says scaling does not provide.' : ''}`;
+  }
+
+  document.getElementById('chainInsight').className = overallClass;
+  document.getElementById('chainInsight').innerHTML = `<p>${overallMsg}</p>`;
+
+  // Bar chart for conditions
+  const ctx = document.getElementById('chainChart').getContext('2d');
+
+  // Score each condition 0-100 (100 = fully met from deployer perspective)
+  const c1Score = Math.min(100, Math.max(0, (1 - (viable80 - 1) / 5) * 100));
+  const c2Score = Math.min(100, p40 * 100 * 2);
+  const c3Score = 85; // always partially met (payment creates oversight)
+  const c4Score = Math.min(100, pMonthPlan * 100 * 2);
+
+  if (chainChart) chainChart.destroy();
+  chainChart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: ['1. Complexity\naffordable', '2. Sufficient\nautonomy', '3. Payment creates\noversight', '4. Beyond intended\nscope'],
+      datasets: [{
+        label: 'Condition strength',
+        data: [c1Score, c2Score, 100 - c3Score, c4Score],
+        backgroundColor: [
+          c1Score > 60 ? 'rgba(196, 77, 43, 0.7)' : c1Score > 30 ? 'rgba(184, 134, 11, 0.7)' : 'rgba(45, 122, 79, 0.7)',
+          c2Score > 60 ? 'rgba(196, 77, 43, 0.7)' : c2Score > 30 ? 'rgba(184, 134, 11, 0.7)' : 'rgba(45, 122, 79, 0.7)',
+          'rgba(45, 122, 79, 0.7)', // oversight is always present
+          c4Score > 60 ? 'rgba(196, 77, 43, 0.7)' : c4Score > 30 ? 'rgba(184, 134, 11, 0.7)' : 'rgba(45, 122, 79, 0.7)',
+        ],
+        borderColor: [
+          c1Score > 60 ? '#c44d2b' : c1Score > 30 ? '#b8860b' : '#2d7a4f',
+          c2Score > 60 ? '#c44d2b' : c2Score > 30 ? '#b8860b' : '#2d7a4f',
+          '#2d7a4f',
+          c4Score > 60 ? '#c44d2b' : c4Score > 30 ? '#b8860b' : '#2d7a4f',
+        ],
+        borderWidth: 1.5,
+        borderRadius: 4,
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: true,
+      aspectRatio: 2.2,
+      indexAxis: 'y',
+      scales: {
+        x: {
+          min: 0,
+          max: 100,
+          title: { display: true, text: 'Risk level (higher = more dangerous)', font: { family: "'Source Sans 3'", size: 12 }, color: '#6b6860' },
+          ticks: {
+            callback: v => v + '%',
+            font: { family: "'JetBrains Mono'", size: 10 },
+            color: '#9a958a',
+          },
+          grid: { color: '#e2ddd4' },
+        },
+        y: {
+          ticks: {
+            font: { family: "'Source Sans 3'", size: 12 },
+            color: '#2c2a25',
+          },
+          grid: { display: false },
+        }
+      },
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label: item => {
+              const labels = [
+                `2-week task ratio: ${fmtRatio(viable80)}`,
+                `P(40h success): ${fmtPct(p40)}`,
+                `Oversight: always present (payment creates verification)`,
+                `P(1-month plan): ${fmtPct(pMonthPlan)}`,
+              ];
+              return labels[item.dataIndex];
+            }
+          },
+          titleFont: { family: "'Source Sans 3'" },
+          bodyFont: { family: "'JetBrains Mono'", size: 12 },
+        }
+      }
+    }
+  });
+}
+
+// ── Master render ──
+function renderAll() {
+  renderVerification();
+  renderSelfSustain();
+  renderReckless();
+  renderChain();
+}
+
+// ── Wiring ──
+function wireSlider(id, paramKey, formatter) {
+  const el = document.getElementById(id);
+  const valEl = document.getElementById(id + '-val');
+  el.addEventListener('input', () => {
+    const v = parseFloat(el.value);
+    P[paramKey] = v;
+    valEl.textContent = formatter(v);
+    document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('active'));
+    renderAll();
+  });
+}
+
+wireSlider('t50', 't50', v => v + 'h');
+wireSlider('kappa', 'kappa', v => v.toFixed(2));
+wireSlider('costStep', 'costStep', v => '$' + v.toFixed(v < 0.1 ? 3 : 2));
+wireSlider('humanRate', 'humanRate', v => '$' + v.toFixed(0));
+wireSlider('stepsHr', 'stepsHr', v => v.toFixed(0));
+wireSlider('reviewFrac', 'reviewFrac', v => (v * 1).toFixed(0) + '%');
+
+// Fix: reviewFrac stored as 0-1 but slider is 0-50
+document.getElementById('reviewFrac').addEventListener('input', () => {
+  P.reviewFrac = parseFloat(document.getElementById('reviewFrac').value) / 100;
+});
+
+// Presets
+window.applyPreset = function(name) {
+  const p = presets[name];
+  Object.assign(P, p);
+  document.getElementById('t50').value = p.t50;
+  document.getElementById('t50-val').textContent = p.t50 + 'h';
+  document.getElementById('kappa').value = p.kappa;
+  document.getElementById('kappa-val').textContent = p.kappa.toFixed(2);
+  document.getElementById('costStep').value = p.costStep;
+  document.getElementById('costStep-val').textContent = '$' + p.costStep.toFixed(p.costStep < 0.1 ? 3 : 2);
+  document.getElementById('humanRate').value = p.humanRate;
+  document.getElementById('humanRate-val').textContent = '$' + p.humanRate;
+  document.getElementById('stepsHr').value = p.stepsHr;
+  document.getElementById('stepsHr-val').textContent = p.stepsHr;
+  document.getElementById('reviewFrac').value = p.reviewFrac * 100;
+  document.getElementById('reviewFrac-val').textContent = (p.reviewFrac * 100).toFixed(0) + '%';
+  document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('active'));
+  const btn = document.querySelector(`.preset-btn[onclick="applyPreset('${name}')"]`);
+  if (btn) btn.classList.add('active');
+  renderAll();
+};
+
+// Tabs
+document.querySelectorAll('.tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+    tab.classList.add('active');
+    document.getElementById('tab-' + tab.dataset.tab).classList.add('active');
+    setTimeout(renderAll, 50);
+  });
+});
+
+// Initial render
+renderAll();
+</script>
+</body>
+</html>
