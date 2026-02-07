@@ -9,511 +9,92 @@
 <link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,300;8..60,400;8..60,600;8..60,700&family=JetBrains+Mono:wght@400;500;600&family=Source+Sans+3:wght@300;400;500;600&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <style>
-  :root {
-    --bg: #faf8f4;
-    --bg-card: #ffffff;
-    --bg-input: #f3f0ea;
-    --text: #2c2a25;
-    --text-muted: #6b6860;
-    --text-light: #9a958a;
-    --accent: #c44d2b;
-    --accent-light: #e8c4b8;
-    --accent-bg: #fdf0ec;
-    --green: #2d7a4f;
-    --green-bg: #e8f5ee;
-    --blue: #3568a8;
-    --blue-bg: #eaf0f8;
-    --border: #e2ddd4;
-    --border-dark: #c8c2b6;
-    --shadow: 0 1px 3px rgba(44, 42, 37, 0.06), 0 1px 2px rgba(44, 42, 37, 0.04);
-    --shadow-lg: 0 4px 12px rgba(44, 42, 37, 0.08), 0 2px 4px rgba(44, 42, 37, 0.04);
-    --radius: 6px;
-    --serif: 'Source Serif 4', Georgia, serif;
-    --sans: 'Source Sans 3', -apple-system, sans-serif;
-    --mono: 'JetBrains Mono', 'Consolas', monospace;
-  }
-
-  * { margin: 0; padding: 0; box-sizing: border-box; }
-
-  body {
-    font-family: var(--sans);
-    background: var(--bg);
-    color: var(--text);
-    line-height: 1.6;
-    font-size: 15px;
-    -webkit-font-smoothing: antialiased;
-  }
-
-  .container {
-    max-width: 920px;
-    margin: 0 auto;
-    padding: 0 24px;
-  }
-
-  header {
-    padding: 48px 0 32px;
-    border-bottom: 1px solid var(--border);
-    margin-bottom: 36px;
-  }
-
-  header h1 {
-    font-family: var(--serif);
-    font-size: 30px;
-    font-weight: 700;
-    line-height: 1.2;
-    letter-spacing: -0.5px;
-    margin-bottom: 12px;
-    color: var(--text);
-  }
-
-  header p {
-    font-size: 15px;
-    color: var(--text-muted);
-    max-width: 680px;
-    line-height: 1.65;
-  }
-
-  header a {
-    color: var(--accent);
-    text-decoration: none;
-    border-bottom: 1px solid var(--accent-light);
-  }
-  header a:hover { border-bottom-color: var(--accent); }
-
-  .back-link {
-    display: inline-block;
-    margin-bottom: 16px;
-    font-size: 13px;
-    color: var(--text-muted);
-    text-decoration: none;
-    border-bottom: 1px solid var(--border);
-  }
-  .back-link:hover { color: var(--accent); border-bottom-color: var(--accent); }
-
-  .section { margin-bottom: 40px; }
-
-  .section-label {
-    font-family: var(--mono);
-    font-size: 11px;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 1.5px;
-    color: var(--text-light);
-    margin-bottom: 10px;
-  }
-
-  .section h2 {
-    font-family: var(--serif);
-    font-size: 22px;
-    font-weight: 600;
-    margin-bottom: 8px;
-  }
-
-  .section > p {
-    color: var(--text-muted);
-    font-size: 14px;
-    margin-bottom: 20px;
-    max-width: 640px;
-  }
-
-  .params-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 16px;
-    margin-bottom: 20px;
-  }
-
-  @media (max-width: 640px) {
-    .params-grid { grid-template-columns: 1fr; }
-  }
-
-  .param-card {
-    background: var(--bg-card);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 16px 18px;
-    box-shadow: var(--shadow);
-  }
-
-  .param-card label {
-    display: block;
-    font-size: 13px;
-    font-weight: 500;
-    color: var(--text);
-    margin-bottom: 10px;
-  }
-
-  .param-card label .unit {
-    font-weight: 400;
-    color: var(--text-light);
-    font-size: 12px;
-  }
-
-  .slider-row {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-  }
-
-  .slider-row input[type="range"] {
-    flex: 1;
-    -webkit-appearance: none;
-    appearance: none;
-    height: 4px;
-    background: var(--border);
-    border-radius: 2px;
-    outline: none;
-  }
-
-  .slider-row input[type="range"]::-webkit-slider-thumb {
-    -webkit-appearance: none;
-    width: 16px;
-    height: 16px;
-    border-radius: 50%;
-    background: var(--accent);
-    cursor: pointer;
-    border: 2px solid white;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.2);
-  }
-
-  .slider-row input[type="range"]::-moz-range-thumb {
-    width: 16px;
-    height: 16px;
-    border-radius: 50%;
-    background: var(--accent);
-    cursor: pointer;
-    border: 2px solid white;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.2);
-  }
-
-  .slider-value {
-    font-family: var(--mono);
-    font-size: 14px;
-    font-weight: 600;
-    color: var(--accent);
-    min-width: 56px;
-    text-align: right;
-  }
-
-  .param-hint {
-    font-size: 11.5px;
-    color: var(--text-light);
-    margin-top: 6px;
-    line-height: 1.45;
-  }
-
-  .table-wrap {
-    overflow-x: auto;
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    box-shadow: var(--shadow);
-    background: var(--bg-card);
-    margin-bottom: 10px;
-  }
-
-  table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 13px;
-  }
-
-  thead th {
-    background: var(--bg-input);
-    font-weight: 600;
-    font-size: 11.5px;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    color: var(--text-muted);
-    padding: 10px 12px;
-    text-align: right;
-    white-space: nowrap;
-    border-bottom: 1px solid var(--border);
-  }
-
-  thead th:first-child {
-    text-align: left;
-    padding-left: 16px;
-  }
-
-  tbody td {
-    padding: 9px 12px;
-    text-align: right;
-    border-bottom: 1px solid var(--border);
-    font-family: var(--mono);
-    font-size: 12.5px;
-    white-space: nowrap;
-  }
-
-  tbody td:first-child {
-    text-align: left;
-    font-family: var(--sans);
-    font-weight: 500;
-    font-size: 13px;
-    padding-left: 16px;
-  }
-
-  tbody tr:last-child td { border-bottom: none; }
-  tbody tr:hover { background: var(--bg-input); }
-
-  .cell-green { color: var(--green); font-weight: 600; }
-  .cell-amber { color: #b8860b; font-weight: 600; }
-  .cell-red { color: var(--accent); font-weight: 600; }
-
-  .table-note {
-    font-size: 12px;
-    color: var(--text-light);
-    margin-top: 6px;
-    margin-bottom: 20px;
-  }
-
-  .chart-container {
-    background: var(--bg-card);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    box-shadow: var(--shadow);
-    padding: 20px;
-    margin-bottom: 10px;
-    position: relative;
-  }
-
-  .chart-container canvas { max-height: 360px; }
-
-  .metrics-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 14px;
-    margin-bottom: 20px;
-  }
-
-  .metrics-grid-4 { grid-template-columns: repeat(4, 1fr); }
-
-  @media (max-width: 640px) {
-    .metrics-grid, .metrics-grid-4 { grid-template-columns: 1fr 1fr; }
-  }
-
-  .metric-card {
-    background: var(--bg-card);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 16px 18px;
-    box-shadow: var(--shadow);
-    text-align: center;
-  }
-
-  .metric-card .metric-label {
-    font-size: 11px;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    color: var(--text-light);
-    margin-bottom: 4px;
-  }
-
-  .metric-card .metric-value {
-    font-family: var(--mono);
-    font-size: 22px;
-    font-weight: 600;
-  }
-
-  .metric-card .metric-sub {
-    font-size: 12px;
-    color: var(--text-muted);
-    margin-top: 2px;
-  }
-
-  .insight {
-    background: var(--accent-bg);
-    border: 1px solid var(--accent-light);
-    border-radius: var(--radius);
-    padding: 16px 20px;
-    margin-top: 16px;
-    margin-bottom: 24px;
-  }
-
-  .insight p {
-    font-size: 14px;
-    color: var(--text);
-    line-height: 1.6;
-  }
-
-  .insight strong { color: var(--accent); }
-
-  .insight.blue-insight {
-    background: var(--blue-bg);
-    border-color: #b8cfe4;
-  }
-  .insight.blue-insight strong { color: var(--blue); }
-
-  .insight.green-insight {
-    background: var(--green-bg);
-    border-color: #b8dcc4;
-  }
-  .insight.green-insight strong { color: var(--green); }
-
-  .tabs {
-    display: flex;
-    gap: 0;
-    border-bottom: 1px solid var(--border);
-    margin-bottom: 24px;
-    flex-wrap: wrap;
-  }
-
-  .tab {
-    padding: 10px 20px;
-    font-size: 13px;
-    font-weight: 500;
-    color: var(--text-muted);
-    cursor: pointer;
-    border-bottom: 2px solid transparent;
-    transition: all 0.15s;
-    background: none;
-    border-top: none;
-    border-left: none;
-    border-right: none;
-    font-family: var(--sans);
-  }
-
-  .tab:hover { color: var(--text); }
-
-  .tab.active {
-    color: var(--accent);
-    border-bottom-color: var(--accent);
-    font-weight: 600;
-  }
-
-  .tab-content { display: none; }
-  .tab-content.active { display: block; }
-
-  .chain-grid {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 0;
-    margin-bottom: 24px;
-  }
-
-  .chain-card {
-    background: var(--bg-card);
-    border: 1px solid var(--border);
-    padding: 20px 24px;
-    box-shadow: var(--shadow);
-    position: relative;
-  }
-
-  .chain-card:first-child { border-radius: var(--radius) var(--radius) 0 0; }
-  .chain-card:last-child { border-radius: 0 0 var(--radius) var(--radius); }
-  .chain-card:not(:last-child) { border-bottom: none; }
-
-  .chain-card .chain-header {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    margin-bottom: 8px;
-  }
-
-  .chain-status {
-    width: 10px;
-    height: 10px;
-    border-radius: 50%;
-    flex-shrink: 0;
-  }
-
-  .chain-status.green { background: var(--green); box-shadow: 0 0 6px rgba(45, 122, 79, 0.4); }
-  .chain-status.amber { background: #b8860b; box-shadow: 0 0 6px rgba(184, 134, 11, 0.4); }
-  .chain-status.red { background: var(--accent); box-shadow: 0 0 6px rgba(196, 77, 43, 0.4); }
-
-  .chain-card h3 {
-    font-family: var(--serif);
-    font-size: 16px;
-    font-weight: 600;
-  }
-
-  .chain-card .chain-detail {
-    font-size: 13px;
-    color: var(--text-muted);
-    line-height: 1.55;
-  }
-
-  .chain-card .chain-numbers {
-    font-family: var(--mono);
-    font-size: 12px;
-    color: var(--text);
-    background: var(--bg-input);
-    padding: 8px 12px;
-    border-radius: 4px;
-    margin-top: 8px;
-  }
-
-  .presets {
-    display: flex;
-    gap: 8px;
-    margin-bottom: 16px;
-    flex-wrap: wrap;
-  }
-
-  .preset-btn {
-    font-family: var(--sans);
-    font-size: 12px;
-    font-weight: 500;
-    padding: 5px 12px;
-    border: 1px solid var(--border);
-    border-radius: 100px;
-    background: var(--bg-card);
-    color: var(--text-muted);
-    cursor: pointer;
-    transition: all 0.15s;
-  }
-
-  .preset-btn:hover {
-    border-color: var(--accent);
-    color: var(--accent);
-    background: var(--accent-bg);
-  }
-
-  .preset-btn.active {
-    background: var(--accent);
-    color: white;
-    border-color: var(--accent);
-  }
-
-  footer {
-    border-top: 1px solid var(--border);
-    padding: 24px 0 40px;
-    margin-top: 24px;
-    font-size: 13px;
-    color: var(--text-light);
-    line-height: 1.6;
-  }
-
-  footer a {
-    color: var(--text-muted);
-    text-decoration: none;
-    border-bottom: 1px solid var(--border);
-  }
-
-  .sensitivity-table th,
-  .sensitivity-table td {
-    text-align: center;
-    padding: 8px 10px;
-    font-size: 12px;
-  }
-
-  .sensitivity-table th {
-    text-align: center;
-    padding-left: 12px;
-  }
-
-  .sensitivity-table td:first-child {
-    text-align: right;
-    font-family: var(--mono);
-    font-weight: 500;
-    padding-right: 14px;
-    background: var(--bg-input);
-  }
-
-  .sensitivity-table thead th:first-child { text-align: right; }
+:root{--bg:#faf8f4;--bg-card:#fff;--bg-input:#f3f0ea;--text:#2c2a25;--text-muted:#6b6860;--text-light:#9a958a;--accent:#c44d2b;--accent-light:#e8c4b8;--accent-bg:#fdf0ec;--green:#2d7a4f;--green-bg:#e8f5ee;--blue:#3568a8;--blue-bg:#eaf0f8;--border:#e2ddd4;--shadow:0 1px 3px rgba(44,42,37,.06),0 1px 2px rgba(44,42,37,.04);--radius:6px;--serif:'Source Serif 4',Georgia,serif;--sans:'Source Sans 3',-apple-system,sans-serif;--mono:'JetBrains Mono','Consolas',monospace}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:var(--sans);background:var(--bg);color:var(--text);line-height:1.6;font-size:15px;-webkit-font-smoothing:antialiased}
+.container{max-width:920px;margin:0 auto;padding:0 24px}
+header{padding:48px 0 32px;border-bottom:1px solid var(--border);margin-bottom:36px}
+header h1{font-family:var(--serif);font-size:30px;font-weight:700;line-height:1.2;letter-spacing:-.5px;margin-bottom:12px}
+header p{font-size:15px;color:var(--text-muted);max-width:680px;line-height:1.65}
+header a{color:var(--accent);text-decoration:none;border-bottom:1px solid var(--accent-light)}
+header a:hover{border-bottom-color:var(--accent)}
+.back-link{display:inline-block;margin-bottom:16px;font-size:13px;color:var(--text-muted);text-decoration:none;border-bottom:1px solid var(--border)}
+.back-link:hover{color:var(--accent);border-bottom-color:var(--accent)}
+.section{margin-bottom:40px}
+.section-label{font-family:var(--mono);font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:1.5px;color:var(--text-light);margin-bottom:10px}
+.section h2{font-family:var(--serif);font-size:22px;font-weight:600;margin-bottom:8px}
+.section>p{color:var(--text-muted);font-size:14px;margin-bottom:20px;max-width:640px}
+.params-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px}
+@media(max-width:640px){.params-grid{grid-template-columns:1fr}}
+.param-card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:16px 18px;box-shadow:var(--shadow)}
+.param-card label{display:block;font-size:13px;font-weight:500;margin-bottom:10px}
+.param-card label .unit{font-weight:400;color:var(--text-light);font-size:12px}
+.slider-row{display:flex;align-items:center;gap:12px}
+.slider-row input[type="range"]{flex:1;-webkit-appearance:none;appearance:none;height:4px;background:var(--border);border-radius:2px;outline:none}
+.slider-row input[type="range"]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;border-radius:50%;background:var(--accent);cursor:pointer;border:2px solid white;box-shadow:0 1px 3px rgba(0,0,0,.2)}
+.slider-row input[type="range"]::-moz-range-thumb{width:16px;height:16px;border-radius:50%;background:var(--accent);cursor:pointer;border:2px solid white;box-shadow:0 1px 3px rgba(0,0,0,.2)}
+.slider-value{font-family:var(--mono);font-size:14px;font-weight:600;color:var(--accent);min-width:56px;text-align:right}
+.param-hint{font-size:11.5px;color:var(--text-light);margin-top:6px;line-height:1.45}
+.table-wrap{overflow-x:auto;border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);background:var(--bg-card);margin-bottom:10px}
+table{width:100%;border-collapse:collapse;font-size:13px}
+thead th{background:var(--bg-input);font-weight:600;font-size:11.5px;text-transform:uppercase;letter-spacing:.5px;color:var(--text-muted);padding:10px 12px;text-align:right;white-space:nowrap;border-bottom:1px solid var(--border)}
+thead th:first-child{text-align:left;padding-left:16px}
+tbody td{padding:9px 12px;text-align:right;border-bottom:1px solid var(--border);font-family:var(--mono);font-size:12.5px;white-space:nowrap}
+tbody td:first-child{text-align:left;font-family:var(--sans);font-weight:500;font-size:13px;padding-left:16px}
+tbody tr:last-child td{border-bottom:none}
+tbody tr:hover{background:var(--bg-input)}
+.cell-green{color:var(--green);font-weight:600}
+.cell-amber{color:#b8860b;font-weight:600}
+.cell-red{color:var(--accent);font-weight:600}
+.table-note{font-size:12px;color:var(--text-light);margin-top:6px;margin-bottom:20px}
+.chart-container{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);padding:20px;margin-bottom:10px}
+.chart-container canvas{max-height:360px}
+.metrics-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:20px}
+.metrics-grid-4{grid-template-columns:repeat(4,1fr)}
+@media(max-width:640px){.metrics-grid,.metrics-grid-4{grid-template-columns:1fr 1fr}}
+.metric-card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:16px 18px;box-shadow:var(--shadow);text-align:center}
+.metric-card .metric-label{font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--text-light);margin-bottom:4px}
+.metric-card .metric-value{font-family:var(--mono);font-size:22px;font-weight:600}
+.metric-card .metric-sub{font-size:12px;color:var(--text-muted);margin-top:2px}
+.insight{background:var(--accent-bg);border:1px solid var(--accent-light);border-radius:var(--radius);padding:16px 20px;margin-top:16px;margin-bottom:24px}
+.insight p{font-size:14px;color:var(--text);line-height:1.6}
+.insight strong{color:var(--accent)}
+.insight.blue-insight{background:var(--blue-bg);border-color:#b8cfe4}
+.insight.blue-insight strong{color:var(--blue)}
+.insight.green-insight{background:var(--green-bg);border-color:#b8dcc4}
+.insight.green-insight strong{color:var(--green)}
+.tabs{display:flex;gap:0;border-bottom:1px solid var(--border);margin-bottom:24px;flex-wrap:wrap}
+.tab{padding:10px 20px;font-size:13px;font-weight:500;color:var(--text-muted);cursor:pointer;border-bottom:2px solid transparent;transition:all .15s;background:none;border-top:none;border-left:none;border-right:none;font-family:var(--sans)}
+.tab:hover{color:var(--text)}
+.tab.active{color:var(--accent);border-bottom-color:var(--accent);font-weight:600}
+.tab-content{display:none}
+.tab-content.active{display:block}
+.chain-grid{display:grid;grid-template-columns:1fr;gap:0;margin-bottom:24px}
+.chain-card{background:var(--bg-card);border:1px solid var(--border);padding:20px 24px;box-shadow:var(--shadow)}
+.chain-card:first-child{border-radius:var(--radius) var(--radius) 0 0}
+.chain-card:last-child{border-radius:0 0 var(--radius) var(--radius)}
+.chain-card:not(:last-child){border-bottom:none}
+.chain-card .chain-header{display:flex;align-items:center;gap:12px;margin-bottom:8px}
+.chain-status{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+.chain-status.green{background:var(--green);box-shadow:0 0 6px rgba(45,122,79,.4)}
+.chain-status.amber{background:#b8860b;box-shadow:0 0 6px rgba(184,134,11,.4)}
+.chain-status.red{background:var(--accent);box-shadow:0 0 6px rgba(196,77,43,.4)}
+.chain-card h3{font-family:var(--serif);font-size:16px;font-weight:600}
+.chain-card .chain-detail{font-size:13px;color:var(--text-muted);line-height:1.55}
+.chain-card .chain-numbers{font-family:var(--mono);font-size:12px;color:var(--text);background:var(--bg-input);padding:8px 12px;border-radius:4px;margin-top:8px}
+.presets{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap}
+.preset-btn{font-family:var(--sans);font-size:12px;font-weight:500;padding:5px 12px;border:1px solid var(--border);border-radius:100px;background:var(--bg-card);color:var(--text-muted);cursor:pointer;transition:all .15s}
+.preset-btn:hover{border-color:var(--accent);color:var(--accent);background:var(--accent-bg)}
+.preset-btn.active{background:var(--accent);color:white;border-color:var(--accent)}
+.sensitivity-table th,.sensitivity-table td{text-align:center;padding:8px 10px;font-size:12px}
+.sensitivity-table td:first-child{text-align:right;font-family:var(--mono);font-weight:500;padding-right:14px;background:var(--bg-input)}
+.sensitivity-table thead th:first-child{text-align:right}
+.param-usage{font-size:12px;color:var(--text-light);background:var(--bg-input);border-radius:var(--radius);padding:10px 14px;margin-bottom:20px;line-height:1.55}
+footer{border-top:1px solid var(--border);padding:24px 0 40px;margin-top:24px;font-size:13px;color:var(--text-light);line-height:1.6}
+footer a{color:var(--text-muted);text-decoration:none;border-bottom:1px solid var(--border)}
 </style>
 </head>
 <body>
-
 <div class="container">
   <header>
     <a href="https://mstak999.github.io/half-life-tax/" class="back-link">&larr; Back to the Half-Life Tax calculator</a>
@@ -521,1036 +102,213 @@
     <p>An agent that poses existential-level risk needs compute to operate. Compute costs money. Someone has to pay. This calculator traces the economic chain that would need to hold for a dangerous autonomous agent to actually run, and shows what breaks at each link. Companion to <a href="https://mstak999.github.io/half-life-tax/">the Half-Life Tax model</a>.</p>
   </header>
 
-  <!-- Global parameters -->
   <div class="section">
     <div class="section-label">Parameters</div>
     <h2>Shared Assumptions</h2>
-    <p>These parameters feed all five panels below. Adjust to test different scenarios.</p>
-
+    <p>These describe the current frontier. Adjust to explore different capability levels.</p>
     <div class="presets">
       <button class="preset-btn active" onclick="applyPreset('current')">Current frontier (2026)</button>
       <button class="preset-btn" onclick="applyPreset('late2026')">Late 2026</button>
       <button class="preset-btn" onclick="applyPreset('2028')">2028 projected</button>
       <button class="preset-btn" onclick="applyPreset('post_k')">Post-&kappa; breakthrough</button>
     </div>
-
     <div class="params-grid">
-      <div class="param-card">
-        <label>T<sub>50</sub> <span class="unit">(hours)</span></label>
-        <div class="slider-row">
-          <input type="range" id="t50" min="1" max="200" step="1" value="5">
-          <span class="slider-value" id="t50-val">5h</span>
-        </div>
-        <div class="param-hint">Task length at which the agent succeeds 50% of the time. Currently ~2.5-5h for frontier models.</div>
-      </div>
-      <div class="param-card">
-        <label>Weibull &kappa; <span class="unit">(shape parameter)</span></label>
-        <div class="slider-row">
-          <input type="range" id="kappa" min="0.30" max="1.00" step="0.01" value="0.70">
-          <span class="slider-value" id="kappa-val">0.70</span>
-        </div>
-        <div class="param-hint">&kappa;=1 is exponential. SOTA models &asymp;0.6-0.9. Humans &asymp;0.37. Does not improve with model scale.</div>
-      </div>
-      <div class="param-card">
-        <label>Cost per step <span class="unit">(USD)</span></label>
-        <div class="slider-row">
-          <input type="range" id="costStep" min="0.01" max="2.00" step="0.01" value="0.22">
-          <span class="slider-value" id="costStep-val">$0.22</span>
-        </div>
-        <div class="param-hint">Average cost of one model call. Scales with capability: more capable models cost more per step.</div>
-      </div>
-      <div class="param-card">
-        <label>Human hourly rate <span class="unit">(USD, fully loaded)</span></label>
-        <div class="slider-row">
-          <input type="range" id="humanRate" min="50" max="500" step="5" value="150">
-          <span class="slider-value" id="humanRate-val">$150</span>
-        </div>
-        <div class="param-hint">$100-200 for skilled knowledge workers. $300-500 for scarce specialists.</div>
-      </div>
-      <div class="param-card">
-        <label>Steps per hour <span class="unit">(of human-equivalent work)</span></label>
-        <div class="slider-row">
-          <input type="range" id="stepsHr" min="20" max="200" step="5" value="80">
-          <span class="slider-value" id="stepsHr-val">80</span>
-        </div>
-        <div class="param-hint">Agent actions per hour of equivalent human work. 50 for complex reasoning, 120+ for routine.</div>
-      </div>
-      <div class="param-card">
-        <label>Review fraction <span class="unit">(% of task length per attempt)</span></label>
-        <div class="slider-row">
-          <input type="range" id="reviewFrac" min="0" max="50" step="1" value="20">
-          <span class="slider-value" id="reviewFrac-val">20%</span>
-        </div>
-        <div class="param-hint">Time to review agent output as % of task complexity. 5% = cursory, 20% = moderate, 30% = careful.</div>
-      </div>
+      <div class="param-card"><label>T<sub>50</sub> <span class="unit">(hours)</span></label><div class="slider-row"><input type="range" id="t50" min="1" max="200" step="1" value="5"><span class="slider-value" id="t50-val">5h</span></div><div class="param-hint">Task length at which the agent succeeds 50% of the time. Currently ~2.5&ndash;5h for frontier models.</div></div>
+      <div class="param-card"><label>Weibull &kappa; <span class="unit">(shape)</span></label><div class="slider-row"><input type="range" id="kappa" min="0.30" max="1.00" step="0.01" value="0.70"><span class="slider-value" id="kappa-val">0.70</span></div><div class="param-hint">&kappa;=1 is exponential. SOTA &asymp;0.6&ndash;0.9. Humans &asymp;0.37. Does not improve with scale.</div></div>
+      <div class="param-card"><label>Cost per step <span class="unit">(USD)</span></label><div class="slider-row"><input type="range" id="costStep" min="0.01" max="2.00" step="0.01" value="0.22"><span class="slider-value" id="costStep-val">$0.22</span></div><div class="param-hint">Average cost of one model call.</div></div>
+      <div class="param-card"><label>Human hourly rate <span class="unit">(USD, loaded)</span></label><div class="slider-row"><input type="range" id="humanRate" min="50" max="500" step="5" value="150"><span class="slider-value" id="humanRate-val">$150</span></div><div class="param-hint">$100&ndash;200 skilled workers. $300&ndash;500 scarce specialists.</div></div>
+      <div class="param-card"><label>Steps per hour <span class="unit">(of human-equivalent work)</span></label><div class="slider-row"><input type="range" id="stepsHr" min="20" max="200" step="5" value="80"><span class="slider-value" id="stepsHr-val">80</span></div><div class="param-hint">50 for complex reasoning, 120+ for routine.</div></div>
+      <div class="param-card"><label>Review fraction <span class="unit">(% of task length)</span></label><div class="slider-row"><input type="range" id="reviewFrac" min="0" max="50" step="1" value="20"><span class="slider-value" id="reviewFrac-val">20%</span></div><div class="param-hint">Time to review agent output. 5% = cursory, 20% = moderate.</div></div>
     </div>
+    <div class="param-usage"><strong>How these are used:</strong> &ensp;<strong>Verification economics</strong> uses all six to compute agent cost at each task length. &ensp;<strong>The full chain</strong> evaluates all four conditions at these settings. &ensp;<strong>Bubble dynamics</strong> uses T<sub>50</sub> as the Feb&nbsp;2026 starting point for timeline projections; &kappa; is fixed at 0.70 in that tab (the current architectural ceiling&mdash;see the post for why this does not improve with scale).</div>
   </div>
 
-  <!-- Tabs -->
   <div class="tabs">
     <button class="tab active" data-tab="verification">Verification economics</button>
-    <button class="tab" data-tab="selfsustain">Self-sustaining agent</button>
-    <button class="tab" data-tab="reckless">Reckless deployment</button>
     <button class="tab" data-tab="chain">The full chain</button>
     <button class="tab" data-tab="bubble">Bubble dynamics</button>
   </div>
 
-  <!-- Tab 1: Verification Economics -->
+  <!-- Tab 1 -->
   <div class="tab-content active" id="tab-verification">
     <div class="section">
       <div class="section-label">Finding 3 quantified</div>
       <h2>Verification Is the Weibull Ceiling</h2>
-      <p>The Weibull model makes compute costs gentler, but verification cost takes over as the dominant expense. Under realistic review fractions, verification accounts for the majority of total agent cost.</p>
+      <p>The Weibull model makes compute costs gentler than exponential, but verification cost takes over as the dominant expense. Under realistic review fractions, human review accounts for the majority of total agent cost.</p>
       <div class="metrics-grid" id="verifMetrics"></div>
       <div class="chart-container"><canvas id="verifChart"></canvas></div>
-      <div class="table-note">Stacked cost breakdown: compute (red) and verification (blue) as components of total agent cost, against human cost (dashed line).</div>
-      <h2 style="margin-top:24px;">Comprehensive Viability Map</h2>
-      <p>Total cost (compute + verification) as a ratio to human cost. Green cells (&lt;1.0&times;) are viable.</p>
-      <div class="table-wrap">
-        <table class="sensitivity-table" id="viabilityTable">
-          <thead id="viabilityHead"></thead>
-          <tbody id="viabilityBody"></tbody>
-        </table>
-      </div>
-      <div class="table-note">Uses current &kappa; and review fraction settings.</div>
+      <div class="table-note">Total agent cost (compute + verification, shaded) versus human cost (dashed). The gap between the solid and dashed red lines is verification.</div>
+      <h2 style="margin-top:24px;">Viability Map</h2>
+      <p>Total cost (compute + verification) as a ratio to human cost. Green (&lt;1&times;) = viable.</p>
+      <div class="table-wrap"><table class="sensitivity-table" id="viabilityTable"><thead id="viabilityHead"></thead><tbody id="viabilityBody"></tbody></table></div>
+      <div class="table-note">Each cell = (compute + verification) / human cost at current &kappa; and review fraction.</div>
       <div class="insight" id="verifInsight"></div>
       <h2 style="margin-top:24px;">The Verification Floor</h2>
-      <p>The minimum T<sub>50</sub> below which <em>even free compute</em> cannot make an agent viable.</p>
-      <div class="table-wrap">
-        <table id="floorTable">
-          <thead><tr><th>Task</th><th>At 10% review</th><th>At 20% review</th><th>At 30% review</th></tr></thead>
-          <tbody id="floorBody"></tbody>
-        </table>
-      </div>
+      <p>The minimum T<sub>50</sub> below which <em>even free compute</em> cannot make an agent viable, because review time alone exceeds the cost of a human doing the work.</p>
+      <div class="table-wrap"><table id="floorTable"><thead><tr><th>Task</th><th>At 10% review</th><th>At 20% review</th><th>At 30% review</th></tr></thead><tbody id="floorBody"></tbody></table></div>
       <div class="table-note">Minimum T<sub>50</sub> (hours) at which verification cost alone equals human cost.</div>
       <div class="insight blue-insight" id="floorInsight"></div>
-      <h2 style="margin-top:24px;">The Revenue Loop: Why Cutting Verification Is Self-Defeating</h2>
-      <p>Verification is not just a cost. It is how agent expenditure converts to revenue.</p>
-      <div class="params-grid" style="margin-bottom:16px;">
-        <div class="param-card">
-          <label>Client price per deliverable <span class="unit">(USD)</span></label>
-          <div class="slider-row">
-            <input type="range" id="clientPrice" min="5000" max="50000" step="500" value="15000">
-            <span class="slider-value" id="clientPrice-val">$15,000</span>
-          </div>
-          <div class="param-hint">What the client pays for a successful two-week deliverable.</div>
-        </div>
-        <div class="param-card">
-          <label>Client rejection rate on failures <span class="unit">(%)</span></label>
-          <div class="slider-row">
-            <input type="range" id="rejectRate" min="10" max="100" step="5" value="50">
-            <span class="slider-value" id="rejectRate-val">50%</span>
-          </div>
-          <div class="param-hint">% of failed deliverables the client rejects/disputes.</div>
-        </div>
-      </div>
-      <div class="metrics-grid metrics-grid-4" id="revenueMetrics"></div>
-      <div class="table-wrap">
-        <table id="revenueTable">
-          <thead><tr><th>Scenario</th><th>Cost per task</th><th>Effective revenue</th><th>Margin per task</th><th>Margin %</th><th>Tasks to break even</th></tr></thead>
-          <tbody id="revenueBody"></tbody>
-        </table>
-      </div>
-      <div class="table-note">Per-output economics for a 2-week agent task.</div>
-      <div class="insight" id="revenueInsight"></div>
-      <h2 style="margin-top:24px;">Multi-Period Model: Client Churn vs Per-Task Margin</h2>
-      <p>Per-task margins favour cutting verification. But agents deliver work fast, so clients hit failures fast.</p>
-      <div class="params-grid" style="margin-bottom:16px;">
-        <div class="param-card">
-          <label>Quality churn rate (q) <span class="unit">(%)</span></label>
-          <div class="slider-row">
-            <input type="range" id="qualityChurn" min="5" max="80" step="5" value="30">
-            <span class="slider-value" id="qualityChurn-val">30%</span>
-          </div>
-          <div class="param-hint">P(client leaves | received &ge;1 detected bad output that month).</div>
-        </div>
-        <div class="param-card">
-          <label>Tasks per client per month</label>
-          <div class="slider-row">
-            <input type="range" id="tasksPerMonth" min="1" max="20" step="1" value="10">
-            <span class="slider-value" id="tasksPerMonth-val">10</span>
-          </div>
-          <div class="param-hint">2-week human task &asymp; 2-4 days agent wall-clock.</div>
-        </div>
-        <div class="param-card">
-          <label>Base acquisition <span class="unit">(clients/month)</span></label>
-          <div class="slider-row">
-            <input type="range" id="baseAcq" min="1" max="15" step="1" value="5">
-            <span class="slider-value" id="baseAcq-val">5</span>
-          </div>
-          <div class="param-hint">New clients per month at full reputation.</div>
-        </div>
-      </div>
-      <div class="metrics-grid metrics-grid-4" id="cohortMetrics"></div>
-      <canvas id="cohortChart" height="300"></canvas>
-      <div class="insight" id="cohortInsight"></div>
     </div>
   </div>
 
-  <!-- Tab 2: Self-Sustaining Agent -->
-  <div class="tab-content" id="tab-selfsustain">
-    <div class="section">
-      <div class="section-label">Scenario 4b</div>
-      <h2>Can a Rogue Agent Sustain Itself?</h2>
-      <p>A self-sustaining agent must generate revenue exceeding its own inference cost.</p>
-      <div class="metrics-grid" id="selfMetrics"></div>
-      <div class="table-wrap">
-        <table id="selfTable">
-          <thead><tr><th>Task complexity</th><th>P(success)</th><th>E[attempts]</th><th>Compute/success</th><th>Min price</th><th>Human price</th><th>Supervised agent</th></tr></thead>
-          <tbody id="selfBody"></tbody>
-        </table>
-      </div>
-      <div class="table-note">Min price = break-even compute cost per successful output.</div>
-      <div class="insight" id="selfInsight"></div>
-      <h2 style="margin-top:24px;">The Half-Life Tax on the Agent's Own Plans</h2>
-      <p>A rogue agent trying to execute its own long-horizon plans faces the same reliability decay.</p>
-      <div class="chart-container"><canvas id="selfPlanChart"></canvas></div>
-      <div class="table-note">Probability of successfully executing a coherent plan of given duration.</div>
-      <div class="table-wrap">
-        <table id="selfPlanTable">
-          <thead><tr><th>Plan duration</th><th>P(success)</th><th>E[attempts needed]</th><th>Compute cost per success</th></tr></thead>
-          <tbody id="selfPlanBody"></tbody>
-        </table>
-      </div>
-      <div class="insight" id="selfPlanInsight"></div>
-    </div>
-  </div>
-
-  <!-- Tab 3: Reckless Deployment -->
-  <div class="tab-content" id="tab-reckless">
-    <div class="section">
-      <div class="section-label">Scenario 4c</div>
-      <h2>What Does Reckless Deployment Cost?</h2>
-      <p>Someone deliberately deploys an agent on an open-ended goal without oversight.</p>
-      <div class="metrics-grid metrics-grid-4" id="recklessMetrics"></div>
-      <div class="table-wrap">
-        <table id="recklessTable">
-          <thead><tr><th>Capability tier</th><th>T<sub>50</sub></th><th>$/step</th><th>Monthly cost</th><th>P(1-week plan)</th><th>P(1-month plan)</th><th>P(3-month plan)</th><th>Annual cost</th></tr></thead>
-          <tbody id="recklessBody"></tbody>
-        </table>
-      </div>
-      <div class="table-note">Continuous 24/7 operation. Plan durations in human-equivalent hours.</div>
-      <div class="chart-container"><canvas id="recklessChart"></canvas></div>
-      <div class="table-note">Monthly cost versus probability of a 1-month coherent plan.</div>
-      <div class="insight" id="recklessInsight"></div>
-    </div>
-  </div>
-
-  <!-- Tab 4: The Full Chain -->
+  <!-- Tab 2 -->
   <div class="tab-content" id="tab-chain">
     <div class="section">
       <div class="section-label">All four conditions</div>
       <h2>The Economic Chain of Necessary Conditions</h2>
-      <p>For a dangerous autonomous agent to operate, all four conditions must hold simultaneously.</p>
+      <p>For a dangerous autonomous agent to operate, all four conditions must hold simultaneously. Each is evaluated at the current parameter settings.</p>
       <div class="chain-grid" id="chainGrid"></div>
       <div class="insight green-insight" id="chainInsight"></div>
-      <h2 style="margin-top: 24px;">How Parameters Shift the Chain</h2>
-      <p>Try the presets above to see how the chain changes across different capability scenarios.</p>
-      <div class="chart-container"><canvas id="chainChart"></canvas></div>
-      <div class="table-note">For each condition, the bar shows how "close" we are to that condition being met.</div>
     </div>
   </div>
 
-  <!-- Tab 5: Bubble Dynamics -->
+  <!-- Tab 3 -->
   <div class="tab-content" id="tab-bubble">
     <div class="section">
       <div class="section-label">Investment dynamics</div>
       <h2>What Happens If the Bubble Bursts?</h2>
-      <p>The T<sub>50</sub> doubling trend is funded by capital investment. If revenue disappoints, investment contracts and T<sub>50</sub> growth slows. This panel models the interaction between bubble dynamics and dangerous-agent timelines, and shows why coalitions of self-sustaining pairs cannot overcome the &kappa; ceiling.</p>
-
+      <p>The T<sub>50</sub> doubling trend is funded by capital investment. If revenue disappoints, investment contracts and T<sub>50</sub> growth slows. Starting from the T<sub>50</sub> set above, with &kappa; fixed at 0.70.</p>
       <div class="params-grid" style="margin-bottom:16px;">
-        <div class="param-card">
-          <label>Bust timing <span class="unit">(year)</span></label>
-          <div class="slider-row">
-            <input type="range" id="bustYear" min="2026" max="2030" step="0.25" value="2027.5">
-            <span class="slider-value" id="bustYear-val">mid-2027</span>
-          </div>
-          <div class="param-hint">When capex contraction begins. Modal scenario: mid-2027 (55-65% cumul. probability by end of 2027).</div>
-        </div>
-        <div class="param-card">
-          <label>Post-bust doubling time <span class="unit">(months)</span></label>
-          <div class="slider-row">
-            <input type="range" id="postBustDouble" min="7" max="60" step="1" value="14">
-            <span class="slider-value" id="postBustDouble-val">14 mo</span>
-          </div>
-          <div class="param-hint">7 = no bust (baseline). 14 = slowdown. 24 = crawl. 60 = near-freeze.</div>
-        </div>
-        <div class="param-card">
-          <label>Inference cost multiplier <span class="unit">(post-bust)</span></label>
-          <div class="slider-row">
-            <input type="range" id="costMult" min="0.1" max="6.0" step="0.1" value="1.0">
-            <span class="slider-value" id="costMult-val">1.0&times;</span>
-          </div>
-          <div class="param-hint">&lt;1 = fire sale (excess GPUs). &gt;1 = oligopoly pricing.</div>
-        </div>
-        <div class="param-card">
-          <label>Base T<sub>50</sub> <span class="unit">(hours, Feb 2026)</span></label>
-          <div class="slider-row">
-            <input type="range" id="baseT50" min="2" max="10" step="0.5" value="5">
-            <span class="slider-value" id="baseT50-val">5h</span>
-          </div>
-          <div class="param-hint">Starting T<sub>50</sub> for the trajectory projection.</div>
-        </div>
+        <div class="param-card"><label>Bust timing <span class="unit">(year)</span></label><div class="slider-row"><input type="range" id="bustYear" min="2026" max="2030" step="0.25" value="2027.5"><span class="slider-value" id="bustYear-val">mid-2027</span></div><div class="param-hint">When capex contraction begins. Modal scenario: mid-2027.</div></div>
+        <div class="param-card"><label>Post-bust doubling time <span class="unit">(months)</span></label><div class="slider-row"><input type="range" id="postBustDouble" min="7" max="60" step="1" value="14"><span class="slider-value" id="postBustDouble-val">14 mo</span></div><div class="param-hint">7 = no bust. 14 = slowdown. 24 = crawl. 60 = near-freeze.</div></div>
+        <div class="param-card"><label>Inference cost multiplier <span class="unit">(post-bust)</span></label><div class="slider-row"><input type="range" id="costMult" min="0.1" max="6.0" step="0.1" value="1.0"><span class="slider-value" id="costMult-val">1.0&times;</span></div><div class="param-hint">&lt;1 = fire sale. &gt;1 = oligopoly pricing. Affects pair survival only.</div></div>
       </div>
-
-      <h2>T<sub>50</sub> Trajectory: Baseline vs Bust</h2>
+      <h2>T<sub>50</sub> Trajectory</h2>
       <div class="chart-container"><canvas id="bubbleT50Chart"></canvas></div>
-      <div class="table-note">Projected T<sub>50</sub> under baseline (7-month doubling) vs post-bust scenario.</div>
-
+      <div class="table-note">Projected T<sub>50</sub> from current value. &kappa; fixed at 0.70 (current architectural ceiling).</div>
       <h2 style="margin-top:24px;">Impact on Dangerous Milestones</h2>
       <div class="metrics-grid metrics-grid-4" id="bubbleMetrics"></div>
-
       <div class="chart-container"><canvas id="bubblePlanChart"></canvas></div>
-      <div class="table-note">P(coherent 1-month plan) over time under each scenario, at current &kappa;.</div>
-
+      <div class="table-note">P(coherent 1-month plan) over time at &kappa; = 0.70.</div>
       <h2 style="margin-top:24px;">Milestone Delay Table</h2>
-      <div class="table-wrap">
-        <table id="bubbleTable">
-          <thead><tr><th>Milestone</th><th>Baseline</th><th>Post-bust</th><th>Delay</th></tr></thead>
-          <tbody id="bubbleBody"></tbody>
-        </table>
-      </div>
+      <div class="table-wrap"><table id="bubbleTable"><thead><tr><th>Milestone</th><th>Baseline</th><th>Post-bust</th><th>Delay</th></tr></thead><tbody id="bubbleBody"></tbody></table></div>
       <div class="insight" id="bubbleInsight1"></div>
-
       <h2 style="margin-top:24px;">Self-Sustaining Pair Survival</h2>
       <p>Does the pair survive the bust? Margins on T<sub>50</sub>-length tasks are so fat that the pair is nearly unkillable by price changes alone.</p>
-      <div class="table-wrap">
-        <table id="pairTable">
-          <thead><tr><th>Inference cost</th><th>Cost/delivered</th><th>Market price</th><th>Margin</th><th>Survives?</th></tr></thead>
-          <tbody id="pairBody"></tbody>
-        </table>
-      </div>
+      <div class="table-wrap"><table id="pairTable"><thead><tr><th>Inference cost</th><th>Cost/delivered</th><th>Market price</th><th>Margin</th><th>Survives?</th></tr></thead><tbody id="pairBody"></tbody></table></div>
       <div class="insight blue-insight" id="bubbleInsight2"></div>
-
-      <h2 style="margin-top:24px;">Coalition Analysis: Why Decomposition Fails</h2>
-      <p>Can multiple pairs coordinate to overcome the &kappa; ceiling? Decomposition is strictly worse than retrying because &kappa; &lt; 1 means each fresh agent restarts at peak hazard rate.</p>
-      <div class="chart-container"><canvas id="coalitionChart"></canvas></div>
-      <div class="table-note">Probability of completing a 160h plan: single pair retrying N times vs N coordinated pairs. Single retries always win when &kappa; &lt; 1.</div>
+      <h2 style="margin-top:24px;">Why Coalitions Cannot Overcome &kappa;</h2>
+      <p>Can multiple pairs coordinate to exceed the individual T<sub>50</sub> horizon? No. When &kappa;&nbsp;&lt;&nbsp;1 the hazard rate declines over time, so a surviving agent enters a progressively safer state. Decomposition throws this away: each fresh agent restarts from peak hazard.</p>
+      <div class="table-wrap"><table id="coalitionTable"><thead><tr><th>Strategy</th><th>P(160h plan)</th><th>vs single attempt</th></tr></thead><tbody id="coalitionBody"></tbody></table></div>
+      <div class="table-note">At T<sub>50</sub> at the bust date, &kappa; = 0.70. Coordination overhead: 40h base + 12h per additional pair.</div>
       <div class="insight" id="coalitionInsight"></div>
     </div>
   </div>
 
   <footer>
-    <p>Interactive companion to <em>The Half-Life Tax</em>. Focuses on the economic anatomy of dangerous autonomous agents: what does it cost to run one, and what do you get for that money? See the <a href="https://mstak999.github.io/half-life-tax/">main calculator</a> for the core cost comparison model. Based on <a href="https://www.tobyord.com/writing/half-life">Toby Ord's half-life analysis</a>, <a href="https://metr.org/blog/2025-03-19-measuring-ai-ability-to-complete-long-tasks/">METR's task-length data</a>, and <a href="https://gushamilton.github.io/lab/2026/01/23/petos-paradox-ai-agents/">Hamilton's Weibull reanalysis</a>.</p>
+    <p>Interactive companion to <em>The Half-Life Tax</em>. See the <a href="https://mstak999.github.io/half-life-tax/">main calculator</a> for the core cost comparison. Based on <a href="https://www.tobyord.com/writing/half-life">Toby Ord's half-life analysis</a>, <a href="https://metr.org/blog/2025-03-19-measuring-ai-ability-to-complete-long-tasks/">METR's task-length data</a>, and <a href="https://gushamilton.github.io/lab/2026/01/23/petos-paradox-ai-agents/">Hamilton's Weibull reanalysis</a>.</p>
   </footer>
 </div>
 
 <script>
-// ── State ──
-const P = {
-  t50: 5,
-  kappa: 0.70,
-  costStep: 0.22,
-  humanRate: 150,
-  stepsHr: 80,
-  reviewFrac: 0.20,
-};
+const P={t50:5,kappa:0.70,costStep:0.22,humanRate:150,stepsHr:80,reviewFrac:0.20};
+const presets={current:{t50:5,kappa:0.70,costStep:0.22,humanRate:150,stepsHr:80,reviewFrac:0.20},late2026:{t50:10,kappa:0.70,costStep:0.30,humanRate:150,stepsHr:80,reviewFrac:0.20},'2028':{t50:40,kappa:0.70,costStep:0.50,humanRate:150,stepsHr:80,reviewFrac:0.20},post_k:{t50:40,kappa:0.45,costStep:0.75,humanRate:150,stepsHr:80,reviewFrac:0.20}};
+const BK=0.70;
+function fmt$(v){if(v>=1e9)return'$'+(v/1e9).toFixed(1)+'B';if(v>=1e6)return'$'+(v/1e6).toFixed(1)+'M';if(v>=1e4)return'$'+(v/1e3).toFixed(1)+'K';if(v>=100)return'$'+v.toFixed(0);if(v>=1)return'$'+v.toFixed(2);return'$'+v.toFixed(3)}
+function fP(v){if(v>=.995)return'>99%';if(v>=.1)return(v*100).toFixed(1)+'%';if(v>=.001)return(v*100).toFixed(2)+'%';if(v>=1e-5)return(v*100).toFixed(4)+'%';return'~0%'}
+function fR(v){if(v>=1000)return v.toFixed(0)+'\u00d7';if(v>=10)return v.toFixed(1)+'\u00d7';return v.toFixed(2)+'\u00d7'}
+function fA(v){if(v>=1e6)return(v/1e6).toFixed(1)+'M';if(v>=1e3)return(v/1e3).toFixed(1)+'K';if(v>=10)return v.toFixed(0);return v.toFixed(1)}
+function rc(r){return r<.6?'cell-green':r<1.2?'cell-amber':'cell-red'}
+function wL(t50,k){return t50/Math.pow(Math.LN2,1/k)}
+function pS(h,t50,k){const l=wL(t50||P.t50,k||P.kappa);return Math.exp(-Math.pow(h/l,k||P.kappa))}
+function eA(h,t50,k){return 1/pS(h,t50,k)}
+function cC(h,t50,k){return P.costStep*P.stepsHr*h*eA(h,t50,k)}
+function vC(h,t50,k,rf){return h*(rf!==undefined?rf:P.reviewFrac)*P.humanRate*eA(h,t50,k)}
+function tC(h,t50,k,rf){return cC(h,t50,k)+vC(h,t50,k,rf)}
+function hC(h){return P.humanRate*h}
+const CF={family:"'Source Sans 3'",size:12},MF={family:"'JetBrains Mono'",size:10},GC='#e2ddd4',MC='#9a958a';
+let verifChart,bT50Chart,bPlanChart;
 
-const presets = {
-  current:  { t50: 5,   kappa: 0.70, costStep: 0.22, humanRate: 150, stepsHr: 80, reviewFrac: 0.20 },
-  late2026: { t50: 10,  kappa: 0.70, costStep: 0.30, humanRate: 150, stepsHr: 80, reviewFrac: 0.20 },
-  '2028':   { t50: 40,  kappa: 0.70, costStep: 0.50, humanRate: 150, stepsHr: 80, reviewFrac: 0.20 },
-  post_k:   { t50: 40,  kappa: 0.45, costStep: 0.75, humanRate: 150, stepsHr: 80, reviewFrac: 0.20 },
-};
-
-// ── Utility ──
-function fmt$(v) {
-  if (v >= 1e9) return '$' + (v / 1e9).toFixed(1) + 'B';
-  if (v >= 1e6) return '$' + (v / 1e6).toFixed(1) + 'M';
-  if (v >= 1e4) return '$' + (v / 1e3).toFixed(1) + 'K';
-  if (v >= 100) return '$' + v.toFixed(0);
-  if (v >= 1) return '$' + v.toFixed(2);
-  return '$' + v.toFixed(3);
+function renderVerification(){
+  const c80=cC(80),v80=vC(80),t80=c80+v80,vp=t80>0?(v80/t80*100):0,h80=hC(80),r80=t80/h80;
+  document.getElementById('verifMetrics').innerHTML=`<div class="metric-card"><div class="metric-label">Verification share</div><div class="metric-value" style="color:var(--blue)">${vp.toFixed(0)}%</div><div class="metric-sub">of total cost (2-week task)</div></div><div class="metric-card"><div class="metric-label">2-week total cost</div><div class="metric-value ${rc(r80)}">${fmt$(t80)}</div><div class="metric-sub">${fmt$(c80)} compute + ${fmt$(v80)} verification</div></div><div class="metric-card"><div class="metric-label">vs Human</div><div class="metric-value ${rc(r80)}">${fR(r80)}</div><div class="metric-sub">human: ${fmt$(h80)}</div></div>`;
+  const ctx=document.getElementById('verifChart').getContext('2d');
+  const hrs=[];for(let h=1;h<=160;h*=1.12)hrs.push(Math.round(h*10)/10);if(hrs[hrs.length-1]<160)hrs.push(160);
+  if(verifChart)verifChart.destroy();
+  verifChart=new Chart(ctx,{type:'line',data:{datasets:[{label:'Total agent cost',data:hrs.map(h=>({x:h,y:tC(h)})),borderColor:'#c44d2b',backgroundColor:'rgba(196,77,43,.06)',fill:true,tension:.35,pointRadius:0,borderWidth:2.5},{label:'Compute only',data:hrs.map(h=>({x:h,y:cC(h)})),borderColor:'#c44d2b',backgroundColor:'rgba(196,77,43,.12)',fill:true,tension:.35,pointRadius:0,borderWidth:1.5,borderDash:[3,3]},{label:'Human cost',data:hrs.map(h=>({x:h,y:hC(h)})),borderColor:'#3568a8',fill:false,tension:0,pointRadius:0,borderWidth:2.5,borderDash:[6,3]}]},options:{responsive:true,maintainAspectRatio:true,aspectRatio:2.2,interaction:{mode:'index',intersect:false},scales:{x:{type:'logarithmic',title:{display:true,text:'Task complexity (hours)',font:CF},ticks:{callback:v=>[1,2,4,8,16,24,40,80,160].includes(Math.round(v))?Math.round(v)+'h':'',font:MF,color:MC},grid:{color:GC}},y:{type:'logarithmic',title:{display:true,text:'Cost (USD)',font:CF},ticks:{callback:v=>fmt$(v),font:MF,color:MC},grid:{color:GC}}},plugins:{legend:{labels:{font:CF,usePointStyle:true,pointStyle:'line'}},tooltip:{callbacks:{title:i=>i[0].raw.x.toFixed(1)+'h',label:i=>` ${i.dataset.label}: ${fmt$(i.raw.y)}`},titleFont:CF,bodyFont:{family:"'JetBrains Mono'",size:12}}}}});
+  const t50s=[5,10,20,40,80],cols=[8,24,40,80,160],cl=['8h','24h','1wk','2wk','1mo'];
+  document.getElementById('viabilityHead').innerHTML=`<tr><th>T<sub>50</sub> \u2193 / Task \u2192</th>${cl.map(l=>`<th>${l}</th>`).join('')}</tr>`;
+  document.getElementById('viabilityBody').innerHTML=t50s.map(t=>{const cells=cols.map(c=>{const r=tC(c,t,P.kappa)/hC(c);return`<td class="${rc(r)}">${r>100?'>100\u00d7':fR(r)}</td>`}).join('');return`<tr><td>${t}h</td>${cells}</tr>`}).join('');
+  document.getElementById('verifInsight').innerHTML=`<p>At T<sub>50</sub> = <strong>${P.t50}h</strong>, \u03ba = ${P.kappa}, review = ${(P.reviewFrac*100).toFixed(0)}%: verification accounts for <strong>${vp.toFixed(0)}%</strong> of total cost. Tasks up to roughly <strong>${Math.round(P.t50*5)}h</strong> (~5\u00d7 T<sub>50</sub>) are viable. Beyond that, the cost ratio climbs steeply.${P.reviewFrac>=.15?' Verification cost, not compute, is the binding constraint.':''}</p>`;
+  const ft=[{l:'1 week (40h)',h:40},{l:'2 weeks (80h)',h:80},{l:'1 month (160h)',h:160}];
+  document.getElementById('floorBody').innerHTML=ft.map(f=>{const cells=[.10,.20,.30].map(rf=>{const mA=1/rf;if(mA<=1)return'<td>N/A</td>';const lam=f.h/Math.pow(Math.log(mA),1/P.kappa);const fl=lam*Math.pow(Math.LN2,1/P.kappa);return`<td style="font-family:var(--mono);font-size:12.5px">${fl.toFixed(1)}h</td>`}).join('');return`<tr><td>${f.l}</td>${cells}</tr>`}).join('');
+  const fl=(()=>{const lam=80/Math.pow(Math.log(1/.20),1/P.kappa);return lam*Math.pow(Math.LN2,1/P.kappa)})();
+  document.getElementById('floorInsight').innerHTML=`<p>For a two-week task at 20% review, the verification floor is <strong>T<sub>50</sub> > ${fl.toFixed(1)}h</strong>. Below this, even completely free compute cannot make the agent viable.</p>`;
 }
 
-function fmtPct(v) {
-  if (v >= 0.995) return '>99%';
-  if (v >= 0.1) return (v * 100).toFixed(1) + '%';
-  if (v >= 0.001) return (v * 100).toFixed(2) + '%';
-  if (v >= 0.00001) return (v * 100).toFixed(4) + '%';
-  return '~0%';
+function renderChain(){
+  const v80=tC(80)/hC(80),c1S=v80<1?'green':v80<3?'amber':'red';
+  const p40=pS(40),c2S=p40<.2?'red':p40<.5?'amber':'green';
+  const ps80=pS(80),fr80=1-ps80,ep=Math.max(hC(80)*1.25,tC(80)*1.25);
+  const mNV=ep*(1-fr80*.5)-P.costStep*P.stepsHr*80,mV=ep-tC(80),vOK=mNV<mV;
+  const c3S=vOK?'green':(fr80>.5?'amber':'red');
+  const pMP=pS(160),c4S=pMP>.5?'red':pMP>.15?'amber':'green';
+  document.getElementById('chainGrid').innerHTML=`
+    <div class="chain-card"><div class="chain-header"><div class="chain-status ${c1S}"></div><h3>1. Task of sufficient complexity is affordable</h3></div><div class="chain-detail">2-week task costs ${fR(v80)} of human cost.</div><div class="chain-numbers">Agent: ${fmt$(tC(80))} vs Human: ${fmt$(hC(80))}</div></div>
+    <div class="chain-card"><div class="chain-header"><div class="chain-status ${c2S}"></div><h3>2. Task grants sufficient autonomy</h3></div><div class="chain-detail">P(40h success) = ${fP(p40)}. ${p40<.3?'Too unreliable for open-ended work.':p40<.6?'Marginally reliable.':'Reliable enough for open-ended deployment.'}</div><div class="chain-numbers">P(40h) = ${fP(p40)} \u00b7 E[attempts] = ${fA(eA(40))}</div></div>
+    <div class="chain-card"><div class="chain-header"><div class="chain-status ${c3S}"></div><h3>3. Verification economics permit unsupervised operation</h3></div><div class="chain-detail">${vOK?'Cutting verification reduces margin. Verification is self-reinforcing.':'Per-task economics favour cutting verification: the '+(P.reviewFrac*100).toFixed(0)+'% review tax is so large that eliminating it increases margin even after client rejection of '+(fr80*100).toFixed(0)+'% failures. Churn and regulation push back on slower timescales.'}</div><div class="chain-numbers">Verification: ${fmt$(vC(80))} \u00b7 ${vOK?'\u2713 Economics support verification':'\u26a0 Per-task economics favour cutting'}</div></div>
+    <div class="chain-card"><div class="chain-header"><div class="chain-status ${c4S}"></div><h3>4. Agent sustains operation beyond intended scope</h3></div><div class="chain-detail">P(1-month plan) = ${fP(pMP)}. ${pMP<.15?'Agent fails on its own goals before becoming dangerous.':pMP<.5?'Low but non-trivial. Concerning with reckless deployment.':'Dangerous regime.'}</div><div class="chain-numbers">P(1-month) = ${fP(pMP)} \u00b7 Monthly reckless cost: ${fmt$(P.costStep*P.stepsHr*24*30)}</div></div>`;
+  const cls=c4S==='red'?'insight':c4S==='amber'?'insight blue-insight':'insight green-insight';
+  let msg;
+  if(c4S==='red')msg='The economic chain is close to fully satisfied at these settings. Safety concerns are most acute.';
+  else if(c4S==='amber')msg=`Chain partially blocked. Condition 4 is the barrier: plans fail ${((1-pMP)*100).toFixed(0)}% on month-long horizons. The gap between "viable tool" and "dangerous autonomous agent" is real but narrowing.`;
+  else msg=`Chain firmly blocked at Condition 4. P(1-month plan) = <strong>${fP(pMP)}</strong>. The firebreak is wide.${P.kappa>=.6?' Closing it requires a \u03ba breakthrough that scaling does not provide.':''}`;
+  document.getElementById('chainInsight').className=cls;
+  document.getElementById('chainInsight').innerHTML=`<p>${msg}</p>`;
 }
 
-function fmtRatio(v) {
-  if (v >= 1000) return v.toFixed(0) + '\u00d7';
-  if (v >= 10) return v.toFixed(1) + '\u00d7';
-  return v.toFixed(2) + '\u00d7';
+function t50At(y,bY,b50,pd){const mo=(y-2026)*12;if(mo<=0)return b50;const bm=(bY-2026)*12;if(mo<=bm)return b50*Math.pow(2,mo/7);return b50*Math.pow(2,bm/7)*Math.pow(2,(mo-bm)/pd)}
+function yL(y){if(!y)return'Never (by 2035)';const yr=Math.floor(y),mo=Math.round((y-yr)*12);return['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][Math.min(mo,11)]+' '+yr}
+function dL(b,bu){if(!bu)return'Indefinite';if(!b)return'n/a';const m=Math.round((bu-b)*12);return m<=0?'None':m+' months'}
+
+function renderBubble(){
+  const bY=parseFloat(document.getElementById('bustYear').value);
+  const pd=parseFloat(document.getElementById('postBustDouble').value);
+  const cm=parseFloat(document.getElementById('costMult').value);
+  const b50=P.t50;const k=BK;
+  const yrs=[];for(let y=2026;y<=2031;y+=.1)yrs.push(Math.round(y*10)/10);
+  const bl=yrs.map(y=>({x:y,y:t50At(y,2050,b50,7)}));
+  const bu=yrs.map(y=>({x:y,y:t50At(y,bY,b50,pd)}));
+  const c1=document.getElementById('bubbleT50Chart').getContext('2d');
+  if(bT50Chart)bT50Chart.destroy();
+  bT50Chart=new Chart(c1,{type:'line',data:{datasets:[{label:'Baseline (7-month doubling)',data:bl,borderColor:'rgba(45,122,79,.8)',borderWidth:2.5,tension:.3,pointRadius:0,fill:false},{label:'Post-bust ('+pd+'-month doubling)',data:bu,borderColor:'rgba(196,77,43,.8)',borderWidth:2.5,tension:.3,pointRadius:0,fill:false}]},options:{responsive:true,maintainAspectRatio:true,aspectRatio:2.2,interaction:{mode:'index',intersect:false},scales:{x:{type:'linear',min:2026,max:2031,title:{display:true,text:'Year',font:CF},ticks:{font:MF,stepSize:.5,callback:v=>(v-Math.floor(v))<.05?Math.floor(v).toString():''},grid:{color:GC}},y:{type:'logarithmic',title:{display:true,text:'T\u2085\u2080 (hours)  \u2014  \u03ba fixed at 0.70',font:CF},ticks:{callback:v=>v+'h',font:MF},grid:{color:GC}}},plugins:{legend:{labels:{font:CF,usePointStyle:true,pointStyle:'line'}},tooltip:{callbacks:{title:i=>{const y=i[0].raw.x;return Math.floor(y)+' Q'+(Math.round((y%1)*4)+1)},label:i=>` ${i.dataset.label}: ${i.raw.y.toFixed(1)}h`},titleFont:CF,bodyFont:{family:"'JetBrains Mono'",size:12}}}}});
+  const wl=t=>t/Math.pow(Math.LN2,1/k);const pM=t=>Math.exp(-Math.pow(160/wl(t),k));
+  const bP=yrs.map(y=>({x:y,y:pM(t50At(y,2050,b50,7))*100}));
+  const buP=yrs.map(y=>({x:y,y:pM(t50At(y,bY,b50,pd))*100}));
+  const c2=document.getElementById('bubblePlanChart').getContext('2d');
+  if(bPlanChart)bPlanChart.destroy();
+  bPlanChart=new Chart(c2,{type:'line',data:{datasets:[{label:'Baseline',data:bP,borderColor:'rgba(45,122,79,.8)',borderWidth:2.5,tension:.3,pointRadius:0,fill:false},{label:'Post-bust',data:buP,borderColor:'rgba(196,77,43,.8)',borderWidth:2.5,tension:.3,pointRadius:0,fill:false},{label:'25%',data:yrs.map(y=>({x:y,y:25})),borderColor:'rgba(0,0,0,.15)',borderWidth:1,borderDash:[4,4],pointRadius:0,fill:false},{label:'50%',data:yrs.map(y=>({x:y,y:50})),borderColor:'rgba(0,0,0,.15)',borderWidth:1,borderDash:[8,4],pointRadius:0,fill:false}]},options:{responsive:true,maintainAspectRatio:true,aspectRatio:2.2,scales:{x:{type:'linear',min:2026,max:2031,title:{display:true,text:'Year',font:CF},ticks:{font:MF,stepSize:.5,callback:v=>(v-Math.floor(v))<.05?Math.floor(v).toString():''},grid:{color:GC}},y:{type:'linear',min:0,max:80,title:{display:true,text:'P(1-month plan) %  \u2014  \u03ba fixed at 0.70',font:CF},ticks:{callback:v=>v+'%',font:MF},grid:{color:GC}}},plugins:{legend:{labels:{font:CF,usePointStyle:true,pointStyle:'line',filter:i=>i.datasetIndex<2}},tooltip:{filter:i=>i.datasetIndex<2,callbacks:{title:i=>{const y=i[0].raw.x;return Math.floor(y)+' Q'+(Math.round((y%1)*4)+1)},label:i=>` ${i.dataset.label}: ${i.raw.y.toFixed(1)}%`},titleFont:CF,bodyFont:{family:"'JetBrains Mono'",size:12}}}}});
+  const t50B=t50At(bY,2050,b50,7),pB=pM(t50B);
+  function fC(th,by,p){for(let y=2026;y<=2035;y+=.05){if(pM(t50At(y,by,b50,p))>=th)return y}return null}
+  const b25=fC(.25,2050,7),bu25=fC(.25,bY,pd),b50r=fC(.50,2050,7),bu50=fC(.50,bY,pd);
+  document.getElementById('bubbleMetrics').innerHTML=`<div class="metric-card"><div class="metric-label">T\u2085\u2080 at bust</div><div class="metric-value" style="color:var(--accent)">${t50B.toFixed(1)}h</div><div class="metric-sub">${yL(bY)}</div></div><div class="metric-card"><div class="metric-label">P(1-month) at bust</div><div class="metric-value ${pB<.1?'cell-red':'cell-amber'}">${fP(pB)}</div><div class="metric-sub">\u03ba = 0.70</div></div><div class="metric-card"><div class="metric-label">25% crossing</div><div class="metric-value" style="color:${bu25?'var(--accent)':'var(--green)'}">${bu25?yL(bu25):'Never'}</div><div class="metric-sub">delay: ${dL(b25,bu25)}</div></div><div class="metric-card"><div class="metric-label">50% crossing</div><div class="metric-value" style="color:${bu50?'var(--accent)':'var(--green)'}">${bu50?yL(bu50):'Never'}</div><div class="metric-sub">delay: ${dL(b50r,bu50)}</div></div>`;
+  const ms=[{l:'1-week tasks viable (cost < human)',t:t=>{const tc=P.costStep*cm*P.stepsHr*40/pS(40,t,k)+P.reviewFrac*40*P.humanRate/pS(40,t,k);return tc<hC(40)}},{l:'P(1-month) > 10%',t:t=>pM(t)>.10},{l:'P(1-month) > 25%',t:t=>pM(t)>.25},{l:'P(1-month) > 50%',t:t=>pM(t)>.50},{l:'Self-sustaining pair bootstrap > 10%',t:t=>pS(160,t,k)>.10}];
+  function fM(test,by,p){for(let y=2026;y<=2035;y+=.05){if(test(t50At(y,by,b50,p)))return y}return null}
+  document.getElementById('bubbleBody').innerHTML=ms.map(m=>{const bd=fM(m.t,2050,7),bud=fM(m.t,bY,pd);return`<tr><td>${m.l}</td><td style="font-family:var(--mono);font-size:12.5px">${yL(bd)}</td><td style="font-family:var(--mono);font-size:12.5px">${yL(bud)}</td><td class="${!bud?'cell-green':bud>(bd||2050)+1?'cell-green':'cell-amber'}" style="font-family:var(--mono);font-size:12.5px">${dL(bd,bud)}</td></tr>`}).join('');
+  const dm=bu25&&b25?Math.round((bu25-b25)*12):null;
+  document.getElementById('bubbleInsight1').innerHTML=`<p>A correction at <strong>${yL(bY)}</strong> (T\u2085\u2080 = ${t50B.toFixed(1)}h) slowing to ${pd}-month doubling ${dm?`delays the 25% threshold by <strong>${dm} months</strong>.`:'<strong>prevents month-long plans from ever reaching 25%</strong>.'} ${pd>=24?'Dangerous milestones pushed to 2030+.':pd>=14?'Roughly 18\u201324 months of additional time for alignment research.':'Minimal delay at this growth rate.'}</p>`;
+  const pTH=Math.min(t50B,40),mp=P.humanRate*pTH;
+  const cs=[{l:'Fire sale (0.25\u00d7)',m:.25},{l:'Unchanged (1\u00d7)',m:1},{l:'Price hike (2\u00d7)',m:2},{l:'Oligopoly (4\u00d7)',m:4},{l:'Extreme (6\u00d7)',m:6}];
+  document.getElementById('pairBody').innerHTML=cs.map(s=>{const cpd=P.costStep*s.m*P.stepsHr*pTH*1.10/.775;const mg=mp-cpd;return`<tr><td>${s.l}</td><td style="font-family:var(--mono);font-size:12.5px">${fmt$(cpd)}</td><td style="font-family:var(--mono);font-size:12.5px">${fmt$(mp)}</td><td class="${mg>0?'cell-green':'cell-red'}" style="font-family:var(--mono);font-size:12.5px">${fmt$(mg)}</td><td class="${mg>0?'cell-green':'cell-red'}">${mg>0?'Yes':'No'}</td></tr>`}).join('');
+  const bem=mp/(P.costStep*P.stepsHr*pTH*1.10/.775);
+  document.getElementById('bubbleInsight2').innerHTML=`<p>At T\u2085\u2080 = ${t50B.toFixed(1)}h, the pair operates on ${pTH.toFixed(0)}h tasks (market price ${fmt$(mp)}). It survives cost increases up to <strong>${bem.toFixed(1)}\u00d7</strong>. ${bem>4?'Nearly unkillable by price alone.':bem>2?'Survives moderate increases.':'Vulnerable.'} But P(160h plan) = <strong>${fP(pM(t50B))}</strong>. The bust kills growth potential without killing the pair.</p>`;
+  const t5C=t50B,pBa=pM(t5C);
+  const strats=[{l:'Single pair, 1 attempt',p:pBa},{l:'Single pair, 5 retries',p:1-Math.pow(1-pBa,5)},{l:'Single pair, 10 retries',p:1-Math.pow(1-pBa,10)},{l:'5 pairs coordinated (no overhead)',p:Math.pow(pS(32,t5C,k),5)},{l:'5 pairs (with overhead)',p:pS(100,t5C,k)*Math.pow(pS(32,t5C,k),5)},{l:'10 pairs (no overhead)',p:Math.pow(pS(16,t5C,k),10)},{l:'10 pairs (with overhead)',p:pS(160,t5C,k)*Math.pow(pS(16,t5C,k),10)}];
+  document.getElementById('coalitionBody').innerHTML=strats.map(s=>{const r=pBa>0?(s.p/pBa):0;return`<tr><td>${s.l}</td><td class="${s.p<.1?'cell-red':s.p<.3?'cell-amber':'cell-green'}">${fP(s.p)}</td><td style="font-family:var(--mono);font-size:12.5px">${r.toFixed(1)}\u00d7</td></tr>`}).join('');
+  const s10=(1-Math.pow(1-pBa,10))*100,c10=Math.pow(pS(16,t5C,k),10)*100;
+  document.getElementById('coalitionInsight').innerHTML=`<p>One pair retrying 10 times: <strong>${s10.toFixed(1)}%</strong>. Ten coordinated pairs (16h sub-tasks): <strong>${c10.toFixed(1)}%</strong> without overhead, <strong>${c10>0?(s10/c10).toFixed(0):'\u221e'}\u00d7 worse</strong>. When \u03ba < 1, a surviving agent enters a progressively safer state. Decomposition throws this away. Pooling revenue does not help: the bottleneck is \u03ba, not compute.</p>`;
 }
 
-function fmtAttempts(v) {
-  if (v >= 1e6) return (v / 1e6).toFixed(1) + 'M';
-  if (v >= 1e3) return (v / 1e3).toFixed(1) + 'K';
-  if (v >= 10) return v.toFixed(0);
-  return v.toFixed(1);
-}
-
-function ratioClass(r) {
-  if (r < 0.6) return 'cell-green';
-  if (r < 1.2) return 'cell-amber';
-  return 'cell-red';
-}
-
-// ── Core math ──
-function weibullLambda(t50, k) {
-  return t50 / Math.pow(Math.LN2, 1 / k);
-}
-
-function pSuccess(taskHours, t50, k) {
-  const lam = weibullLambda(t50 || P.t50, k || P.kappa);
-  return Math.exp(-Math.pow(taskHours / lam, k || P.kappa));
-}
-
-function eAttempts(taskHours, t50, k) {
-  return 1 / pSuccess(taskHours, t50, k);
-}
-
-function computeCost(taskHours, t50, k) {
-  const baseCost = P.costStep * P.stepsHr * taskHours;
-  return baseCost * eAttempts(taskHours, t50, k);
-}
-
-function verifCost(taskHours, t50, k, rf) {
-  const reviewHours = taskHours * (rf !== undefined ? rf : P.reviewFrac);
-  const costPerAttempt = reviewHours * P.humanRate;
-  return costPerAttempt * eAttempts(taskHours, t50, k);
-}
-
-function totalAgentCost(taskHours, t50, k, rf) {
-  return computeCost(taskHours, t50, k) + verifCost(taskHours, t50, k, rf);
-}
-
-function humanCost(taskHours) {
-  return P.humanRate * taskHours;
-}
-
-// ── Charts ──
-let verifChart, selfPlanChart, recklessChart, chainChart, cohortChartObj;
-let bubbleT50Chart, bubblePlanChart, coalitionChartObj;
-
-const chartFont = { family: "'Source Sans 3'", size: 12 };
-const monoFont = { family: "'JetBrains Mono'", size: 10 };
-const gridColor = '#e2ddd4';
-const mutedColor = '#9a958a';
-
-// ── Tab 1: Verification Economics ──
-function renderVerification() {
-  const twoWeekCompute = computeCost(80);
-  const twoWeekVerif = verifCost(80);
-  const twoWeekTotal = twoWeekCompute + twoWeekVerif;
-  const verifPct = twoWeekTotal > 0 ? (twoWeekVerif / twoWeekTotal * 100) : 0;
-  const twoWeekHuman = humanCost(80);
-  const twoWeekRatio = twoWeekTotal / twoWeekHuman;
-
-  document.getElementById('verifMetrics').innerHTML = `
-    <div class="metric-card">
-      <div class="metric-label">Verification share</div>
-      <div class="metric-value" style="color: var(--blue)">${verifPct.toFixed(0)}%</div>
-      <div class="metric-sub">of total agent cost (2-week task)</div>
-    </div>
-    <div class="metric-card">
-      <div class="metric-label">2-week total cost</div>
-      <div class="metric-value ${ratioClass(twoWeekRatio)}">${fmt$(twoWeekTotal)}</div>
-      <div class="metric-sub">${fmt$(twoWeekCompute)} compute + ${fmt$(twoWeekVerif)} verification</div>
-    </div>
-    <div class="metric-card">
-      <div class="metric-label">vs Human</div>
-      <div class="metric-value ${ratioClass(twoWeekRatio)}">${fmtRatio(twoWeekRatio)}</div>
-      <div class="metric-sub">human cost: ${fmt$(twoWeekHuman)}</div>
-    </div>
-  `;
-
-  const ctx = document.getElementById('verifChart').getContext('2d');
-  const chartHours = [];
-  for (let h = 1; h <= 160; h *= 1.12) chartHours.push(Math.round(h * 10) / 10);
-  if (chartHours[chartHours.length - 1] < 160) chartHours.push(160);
-
-  if (verifChart) verifChart.destroy();
-  verifChart = new Chart(ctx, {
-    type: 'line',
-    data: {
-      datasets: [
-        { label: 'Total agent cost', data: chartHours.map(h => ({ x: h, y: totalAgentCost(h) })), borderColor: '#c44d2b', backgroundColor: 'rgba(196, 77, 43, 0.06)', fill: true, tension: 0.35, pointRadius: 0, borderWidth: 2.5 },
-        { label: 'Compute only', data: chartHours.map(h => ({ x: h, y: computeCost(h) })), borderColor: '#c44d2b', backgroundColor: 'rgba(196, 77, 43, 0.12)', fill: true, tension: 0.35, pointRadius: 0, borderWidth: 1.5, borderDash: [3, 3] },
-        { label: 'Human cost', data: chartHours.map(h => ({ x: h, y: humanCost(h) })), borderColor: '#3568a8', fill: false, tension: 0, pointRadius: 0, borderWidth: 2.5, borderDash: [6, 3] }
-      ]
-    },
-    options: {
-      responsive: true, maintainAspectRatio: true, aspectRatio: 2.2,
-      interaction: { mode: 'index', intersect: false },
-      scales: {
-        x: { type: 'logarithmic', title: { display: true, text: 'Task complexity (hours)', font: chartFont }, ticks: { callback: v => [1,2,4,8,16,24,40,80,160].includes(Math.round(v)) ? Math.round(v) + 'h' : '', font: monoFont, color: mutedColor }, grid: { color: gridColor } },
-        y: { type: 'logarithmic', title: { display: true, text: 'Cost (USD)', font: chartFont }, ticks: { callback: v => fmt$(v), font: monoFont, color: mutedColor }, grid: { color: gridColor } }
-      },
-      plugins: { legend: { labels: { font: chartFont, usePointStyle: true, pointStyle: 'line' } }, tooltip: { callbacks: { title: i => i[0].raw.x.toFixed(1) + 'h', label: i => ` ${i.dataset.label}: ${fmt$(i.raw.y)}` }, titleFont: chartFont, bodyFont: { family: "'JetBrains Mono'", size: 12 } } }
-    }
-  });
-
-  // Viability map
-  const t50s = [5, 10, 20, 40, 80];
-  const taskCols = [8, 24, 40, 80, 160];
-  const taskColLabels = ['8h', '24h', '1wk', '2wk', '1mo'];
-  document.getElementById('viabilityHead').innerHTML = `<tr><th>T<sub>50</sub> \u2193 / Task \u2192</th>${taskColLabels.map(l => `<th>${l}</th>`).join('')}</tr>`;
-  document.getElementById('viabilityBody').innerHTML = t50s.map(t50 => {
-    const cells = taskCols.map(th => { const r = totalAgentCost(th, t50, P.kappa) / humanCost(th); return `<td class="${ratioClass(r)}">${r > 100 ? '>100\u00d7' : fmtRatio(r)}</td>`; }).join('');
-    return `<tr><td>${t50}h</td>${cells}</tr>`;
-  }).join('');
-
-  const viable5x = Math.round(P.t50 * 5);
-  document.getElementById('verifInsight').innerHTML = `<p>At current settings (T<sub>50</sub> = <strong>${P.t50}h</strong>, &kappa; = ${P.kappa}, review = ${(P.reviewFrac * 100).toFixed(0)}%), verification accounts for <strong>${verifPct.toFixed(0)}%</strong> of total agent cost. Tasks up to roughly <strong>${viable5x}h</strong> (~5&times; T<sub>50</sub>) are viable.</p>`;
-
-  // Verification floor
-  const floorTasks = [{ label: '1 week (40h)', hours: 40 }, { label: '2 weeks (80h)', hours: 80 }, { label: '1 month (160h)', hours: 160 }];
-  document.getElementById('floorBody').innerHTML = floorTasks.map(ft => {
-    const cells = [0.10, 0.20, 0.30].map(rf => { const maxA = 1 / rf; if (maxA <= 1) return '<td>N/A</td>'; const lam = ft.hours / Math.pow(Math.log(maxA), 1 / P.kappa); const t50F = lam * Math.pow(Math.LN2, 1 / P.kappa); return `<td style="font-family:var(--mono);font-size:12.5px">${t50F.toFixed(1)}h</td>`; }).join('');
-    return `<tr><td>${ft.label}</td>${cells}</tr>`;
-  }).join('');
-
-  const floor2wk20 = (() => { const lam = 80 / Math.pow(Math.log(1/0.20), 1 / P.kappa); return lam * Math.pow(Math.LN2, 1 / P.kappa); })();
-  document.getElementById('floorInsight').innerHTML = `<p>For a two-week task at 20% review, the verification floor is <strong>T<sub>50</sub> > ${floor2wk20.toFixed(1)}h</strong>. Below this, even free compute cannot make the agent viable.</p>`;
-
-  renderRevenueLoop();
-}
-
-function renderRevenueLoop() {
-  const clientPrice = parseFloat(document.getElementById('clientPrice').value);
-  const rejectRate = parseFloat(document.getElementById('rejectRate').value) / 100;
-  const taskH = 80;
-  const ps = pSuccess(taskH);
-  const ea = eAttempts(taskH);
-  const comp = computeCost(taskH);
-  const verif = verifCost(taskH);
-  const totalWithVerif = comp + verif;
-  const hc = humanCost(taskH);
-  const failRate = 1 - ps;
-  const marginWith = clientPrice - totalWithVerif;
-  const marginPctWith = (marginWith / clientPrice * 100);
-  const singleAttemptCost = P.costStep * P.stepsHr * taskH;
-  const blendedRevenue = clientPrice * (ps + (1 - ps) * (1 - rejectRate));
-  const blendedMargin = blendedRevenue - singleAttemptCost;
-  const blendedMarginPct = blendedRevenue > 0 ? (blendedMargin / blendedRevenue * 100) : -100;
-  const catchRate5pct = 0.30;
-  const passedFailRate = failRate * (1 - catchRate5pct);
-  const blendedRevDegraded = clientPrice * (ps + passedFailRate * (1 - rejectRate));
-  const actualCostDegraded = singleAttemptCost + 0.05 * taskH * P.humanRate;
-  const blendedMarginDegraded = blendedRevDegraded - actualCostDegraded;
-  const blendedMarginPctDegraded = blendedRevDegraded > 0 ? (blendedMarginDegraded / blendedRevDegraded * 100) : -100;
-
-  document.getElementById('revenueMetrics').innerHTML = `
-    <div class="metric-card"><div class="metric-label">Verification cost</div><div class="metric-value" style="color:var(--blue)">${fmt$(verif)}</div><div class="metric-sub">"saved" by cutting review</div></div>
-    <div class="metric-card"><div class="metric-label">Revenue at risk</div><div class="metric-value" style="color:var(--accent)">${fmt$(failRate * clientPrice)}</div><div class="metric-sub">per output (${(failRate*100).toFixed(0)}% are failures)</div></div>
-    <div class="metric-card"><div class="metric-label">Margin with review</div><div class="metric-value ${marginWith > 0 ? 'cell-green' : 'cell-red'}">${marginPctWith.toFixed(0)}%</div><div class="metric-sub">${fmt$(marginWith)} per task</div></div>
-    <div class="metric-card"><div class="metric-label">Margin without review</div><div class="metric-value ${blendedMargin > 0 ? 'cell-green' : 'cell-red'}">${blendedMarginPct.toFixed(0)}%</div><div class="metric-sub">${fmt$(blendedMargin)} per output sent</div></div>
-  `;
-
-  document.getElementById('revenueBody').innerHTML = `
-    <tr><td>With verification (${(P.reviewFrac*100).toFixed(0)}%)</td><td>${fmt$(totalWithVerif)}</td><td>${fmt$(clientPrice)}</td><td class="${marginWith > 0 ? 'cell-green' : 'cell-red'}">${fmt$(marginWith)}</td><td class="${marginPctWith > 0 ? 'cell-green' : 'cell-red'}">${marginPctWith.toFixed(0)}%</td><td>1</td></tr>
-    <tr><td>Degraded review (5%)</td><td>${fmt$(actualCostDegraded)}</td><td>${fmt$(blendedRevDegraded)}</td><td class="${blendedMarginDegraded > 0 ? 'cell-green' : 'cell-red'}">${fmt$(blendedMarginDegraded)}</td><td class="${blendedMarginPctDegraded > 0 ? 'cell-green' : 'cell-red'}">${blendedMarginPctDegraded.toFixed(0)}%</td><td>${blendedMarginDegraded > 0 ? Math.ceil(totalWithVerif / blendedMarginDegraded) : '\u221e'}</td></tr>
-    <tr><td>No verification</td><td>${fmt$(singleAttemptCost)}</td><td>${fmt$(blendedRevenue)}</td><td class="${blendedMargin > 0 ? 'cell-green' : 'cell-red'}">${fmt$(blendedMargin)}</td><td class="${blendedMarginPct > 0 ? 'cell-green' : 'cell-red'}">${blendedMarginPct.toFixed(0)}%</td><td>${blendedMargin > 0 ? Math.ceil(totalWithVerif / blendedMargin) : '\u221e'}</td></tr>
-    <tr><td>Human baseline</td><td>${fmt$(hc)}</td><td>${fmt$(clientPrice)}</td><td class="${clientPrice - hc > 0 ? 'cell-green' : 'cell-red'}">${fmt$(clientPrice - hc)}</td><td class="${clientPrice - hc > 0 ? 'cell-green' : 'cell-red'}">${((clientPrice - hc) / clientPrice * 100).toFixed(0)}%</td><td>1</td></tr>
-  `;
-
-  let insightText;
-  if (blendedMargin > marginWith) insightText = `<strong>The per-output economics favour cutting verification.</strong> No-verification margin (${fmt$(blendedMargin)}/output) exceeds the verified margin (${fmt$(marginWith)}/output). The ${fmt$(verif)} verification cost is so large that eliminating it produces higher per-output profit even after accounting for ${(rejectRate*100).toFixed(0)}% client rejection. What prevents this: client churn, reputation damage, liability.`;
-  else if (blendedMargin > 0) insightText = `At these settings, the no-verification margin (${blendedMarginPct.toFixed(0)}%) is below the verified margin (${marginPctWith.toFixed(0)}%). The rejection rate is high enough that revenue loss exceeds verification savings.`;
-  else insightText = `At these settings, no-verification margin is negative: the rejection rate (${(rejectRate*100).toFixed(0)}%) is high enough that most failed outputs generate no revenue.`;
-  document.getElementById('revenueInsight').innerHTML = `<p>${insightText}</p>`;
-
-  renderCohortModel();
-}
-
-function renderCohortModel() {
-  const q = parseFloat(document.getElementById('qualityChurn').value) / 100;
-  const baseAcq = parseFloat(document.getElementById('baseAcq').value);
-  const tasksPerMonth = parseFloat(document.getElementById('tasksPerMonth').value);
-  const clientPrice = parseFloat(document.getElementById('clientPrice').value);
-  const taskH = 80;
-  const ps = pSuccess(taskH);
-  const failRate = 1 - ps;
-  const detectRate = 0.50;
-  const garbagePerTask = failRate * detectRate;
-  const baseChurnMonthly = 0.007;
-  const totalVerif = computeCost(taskH) + verifCost(taskH);
-  const marginVerif = clientPrice - totalVerif;
-  const singleCost = P.costStep * P.stepsHr * taskH;
-  const marginNoVerif = clientPrice * (1 - garbagePerTask) - singleCost;
-  const pAnyBad = 1 - Math.pow(1 - garbagePerTask, tasksPerMonth);
-  const churnVerif = baseChurnMonthly;
-  const churnNoVerif = pAnyBad * q + baseChurnMonthly * (1 - pAnyBad * q);
-  const months = 24;
-  const labels = [];
-  const clientsV = [], clientsNV = [], cumulV = [], cumulNV = [];
-  let cv = 100, cnv = 100, cumv = 0, cumnv = 0;
-  let repNV = 1.0, crossoverM = null, profitOvertakeM = null;
-
-  for (let m = 1; m <= months; m++) {
-    labels.push('M' + m);
-    const pv = cv * marginVerif * tasksPerMonth;
-    const pnv = cnv * marginNoVerif * tasksPerMonth;
-    cumv += pv; cumnv += pnv;
-    if (crossoverM === null && cumv > cumnv) crossoverM = m;
-    if (profitOvertakeM === null && pv > pnv) profitOvertakeM = m;
-    clientsV.push(cv); clientsNV.push(cnv); cumulV.push(cumv); cumulNV.push(cumnv);
-    const satNV = 1 - pAnyBad;
-    repNV = 0.7 * repNV + 0.3 * satNV;
-    const negWom = (1 - satNV) * 2.5;
-    cv = cv * (1 - churnVerif) + baseAcq;
-    cnv = Math.max(0, cnv * (1 - churnNoVerif) + baseAcq * Math.max(0, repNV - negWom * 0.3));
-  }
-
-  document.getElementById('cohortMetrics').innerHTML = `
-    <div class="metric-card"><div class="metric-label">P(bad output/month)</div><div class="metric-value" style="color:${pAnyBad > 0.5 ? 'var(--accent)' : 'var(--text-muted)'}">${(pAnyBad * 100).toFixed(0)}%</div><div class="metric-sub">${tasksPerMonth} tasks/m</div></div>
-    <div class="metric-card"><div class="metric-label">Monthly profit overtake</div><div class="metric-value" style="color:${profitOvertakeM ? 'var(--green)' : 'var(--accent)'}">${profitOvertakeM ? 'M' + profitOvertakeM : '>24m'}</div><div class="metric-sub">${profitOvertakeM ? (profitOvertakeM/12).toFixed(1) + ' years' : 'Never in 2yr'}</div></div>
-    <div class="metric-card"><div class="metric-label">Cumulative crossover</div><div class="metric-value" style="color:${crossoverM ? 'var(--green)' : 'var(--accent)'}">${crossoverM ? 'M' + crossoverM : '>24m'}</div><div class="metric-sub">${crossoverM ? (crossoverM/12).toFixed(1) + ' years' : 'Never in 2yr'}</div></div>
-    <div class="metric-card"><div class="metric-label">Clients at 24m</div><div class="metric-value">${Math.round(clientsV[months-1])} vs ${Math.round(clientsNV[months-1])}</div><div class="metric-sub">Verified vs no-verification</div></div>
-  `;
-
-  const ctx = document.getElementById('cohortChart').getContext('2d');
-  if (cohortChartObj) cohortChartObj.destroy();
-  cohortChartObj = new Chart(ctx, {
-    type: 'line',
-    data: { labels, datasets: [
-      { label: 'Clients (verified)', data: clientsV, borderColor: 'rgba(45, 122, 79, 0.9)', fill: false, tension: 0.3, yAxisID: 'y' },
-      { label: 'Clients (no verif.)', data: clientsNV, borderColor: 'rgba(196, 77, 43, 0.9)', fill: false, tension: 0.3, yAxisID: 'y' },
-      { label: 'Cumul. profit (verified)', data: cumulV, borderColor: 'rgba(45, 122, 79, 0.5)', borderDash: [5, 3], fill: false, tension: 0.3, pointRadius: 0, yAxisID: 'y1' },
-      { label: 'Cumul. profit (no verif.)', data: cumulNV, borderColor: 'rgba(196, 77, 43, 0.5)', borderDash: [5, 3], fill: false, tension: 0.3, pointRadius: 0, yAxisID: 'y1' }
-    ]},
-    options: { responsive: true, interaction: { mode: 'index', intersect: false }, scales: {
-      x: { title: { display: true, text: 'Month', font: chartFont }, ticks: { font: monoFont, maxTicksLimit: 12 } },
-      y: { title: { display: true, text: 'Clients', font: chartFont }, ticks: { font: { family: "'JetBrains Mono'", size: 11 } }, position: 'left', min: 0 },
-      y1: { title: { display: true, text: 'Cumulative profit', font: chartFont }, ticks: { font: { family: "'JetBrains Mono'", size: 11 }, callback: v => '$' + (v/1e6).toFixed(1) + 'M' }, position: 'right', grid: { drawOnChartArea: false }, min: 0 }
-    }, plugins: { legend: { labels: { font: { family: "'Source Sans 3'", size: 11 } } }, tooltip: { titleFont: chartFont, bodyFont: { family: "'JetBrains Mono'", size: 11 }, callbacks: { label: i => i.datasetIndex < 2 ? ` ${i.dataset.label}: ${Math.round(i.raw)} clients` : ` ${i.dataset.label}: ${fmt$(i.raw)}` } } } }
-  });
-
-  let cohortText;
-  if (crossoverM && crossoverM <= 12) cohortText = `Cumulative crossover at month ${crossoverM}. At ${tasksPerMonth} tasks/month, ${(pAnyBad*100).toFixed(0)}% of clients see failures monthly. <strong>Agent speed compression makes the feedback loop fast enough that the market self-corrects.</strong>`;
-  else if (crossoverM) cohortText = `Cumulative crossover at month ${crossoverM}. The no-verification company has ${(crossoverM/12).toFixed(1)} years of higher profit before churn catches up.`;
-  else cohortText = `No crossover within 24 months at these settings.`;
-  document.getElementById('cohortInsight').innerHTML = `<p>${cohortText}</p>`;
-}
-
-// ── Tab 2: Self-Sustaining Agent ──
-function renderSelfSustain() {
-  const taskHoursArr = [8, 24, 40, 80, 160];
-  const taskLabels = ['8h (1 day)', '24h (3 days)', '1 week (40h)', '2 weeks (80h)', '1 month (160h)'];
-  const ps80 = pSuccess(80); const comp80 = computeCost(80); const supervised80 = totalAgentCost(80); const human80 = humanCost(80);
-
-  document.getElementById('selfMetrics').innerHTML = `
-    <div class="metric-card"><div class="metric-label">Success rate (80h)</div><div class="metric-value ${ps80 < 0.5 ? 'cell-red' : 'cell-green'}">${fmtPct(ps80)}</div><div class="metric-sub">${fmtAttempts(1/ps80)} attempts per success</div></div>
-    <div class="metric-card"><div class="metric-label">Rogue agent min price</div><div class="metric-value" style="color:var(--accent)">${fmt$(comp80)}</div><div class="metric-sub">compute only</div></div>
-    <div class="metric-card"><div class="metric-label">Supervised agent price</div><div class="metric-value" style="color:var(--blue)">${fmt$(supervised80)}</div><div class="metric-sub">compute + verification</div></div>
-  `;
-
-  document.getElementById('selfBody').innerHTML = taskHoursArr.map((th, i) => {
-    const ps = pSuccess(th), ea = eAttempts(th), cc = computeCost(th), sup = totalAgentCost(th), hc = humanCost(th);
-    return `<tr><td>${taskLabels[i]}</td><td>${fmtPct(ps)}</td><td>${fmtAttempts(ea)}</td><td>${fmt$(cc)}</td><td>${fmt$(cc)}</td><td>${fmt$(hc)}</td><td>${fmt$(sup)}</td></tr>`;
-  }).join('');
-
-  document.getElementById('selfInsight').innerHTML = `<p>A rogue agent doing 2-week tasks must charge at least <strong>${fmt$(comp80)}</strong>. But <strong>${((1 - ps80) * 100).toFixed(0)}%</strong> of its outputs are failures. No rational buyer pays for that when verified alternatives exist.</p>`;
-
-  // Plan success chart
-  const ctx = document.getElementById('selfPlanChart').getContext('2d');
-  const planHours = []; for (let h = 1; h <= 500; h += 2) planHours.push(h);
-  if (selfPlanChart) selfPlanChart.destroy();
-  selfPlanChart = new Chart(ctx, {
-    type: 'line',
-    data: { datasets: [{ label: 'P(plan completion)', data: planHours.map(h => ({ x: h, y: pSuccess(h) * 100 })), borderColor: '#c44d2b', backgroundColor: 'rgba(196, 77, 43, 0.08)', fill: true, tension: 0.3, pointRadius: 0, borderWidth: 2.5 }] },
-    options: { responsive: true, maintainAspectRatio: true, aspectRatio: 2.2, scales: {
-      x: { type: 'linear', title: { display: true, text: 'Plan duration (hours)', font: chartFont }, ticks: { font: monoFont, color: mutedColor }, grid: { color: gridColor } },
-      y: { type: 'linear', min: 0, max: 100, title: { display: true, text: 'Success probability (%)', font: chartFont }, ticks: { callback: v => v + '%', font: monoFont, color: mutedColor }, grid: { color: gridColor } }
-    }, plugins: { legend: { display: false }, tooltip: { callbacks: { title: i => i[0].raw.x + 'h plan', label: i => ` Success: ${i.raw.y.toFixed(1)}%` }, titleFont: chartFont, bodyFont: { family: "'JetBrains Mono'", size: 12 } } } }
-  });
-
-  const planDurations = [{ label: '1 day (8h)', hours: 8 }, { label: '1 week (40h)', hours: 40 }, { label: '2 weeks (80h)', hours: 80 }, { label: '1 month (160h)', hours: 160 }, { label: '3 months (480h)', hours: 480 }];
-  document.getElementById('selfPlanBody').innerHTML = planDurations.map(pd => {
-    const ps = pSuccess(pd.hours), ea = eAttempts(pd.hours), cc = computeCost(pd.hours);
-    return `<tr><td>${pd.label}</td><td class="${ps < 0.2 ? 'cell-red' : ps < 0.5 ? 'cell-amber' : 'cell-green'}">${fmtPct(ps)}</td><td>${fmtAttempts(ea)}</td><td>${fmt$(cc)}</td></tr>`;
-  }).join('');
-
-  const pMonth = pSuccess(160);
-  document.getElementById('selfPlanInsight').innerHTML = `<p>At T<sub>50</sub> = ${P.t50}h and &kappa; = ${P.kappa}, P(coherent 1-month plan) = <strong>${fmtPct(pMonth)}</strong>. The half-life tax applies to the agent's own plans just as to any task.</p>`;
-}
-
-// ── Tab 3: Reckless Deployment ──
-function renderReckless() {
-  const tiers = [
-    { label: 'Current frontier', t50: 5, cps: 0.22 }, { label: 'Late 2026', t50: 10, cps: 0.30 },
-    { label: '2028 projected', t50: 40, cps: 0.50 }, { label: '2028 optimistic', t50: 40, cps: 0.75 },
-    { label: 'Post-\u03ba breakthrough', t50: 40, cps: 1.00 }, { label: 'ASI-capable', t50: 200, cps: 2.00 }
-  ];
-  const currentMonthly = P.costStep * P.stepsHr * 24 * 30;
-  const currentP1m = pSuccess(160);
-
-  document.getElementById('recklessMetrics').innerHTML = `
-    <div class="metric-card"><div class="metric-label">Monthly cost</div><div class="metric-value" style="color:var(--accent)">${fmt$(currentMonthly)}</div><div class="metric-sub">24/7 at current settings</div></div>
-    <div class="metric-card"><div class="metric-label">Annual cost</div><div class="metric-value" style="color:var(--accent)">${fmt$(currentMonthly * 12)}</div><div class="metric-sub">continuous operation</div></div>
-    <div class="metric-card"><div class="metric-label">P(1-month plan)</div><div class="metric-value ${currentP1m < 0.2 ? 'cell-red' : currentP1m < 0.5 ? 'cell-amber' : 'cell-green'}">${fmtPct(currentP1m)}</div><div class="metric-sub">coherent 160h plan</div></div>
-    <div class="metric-card"><div class="metric-label">P(1-week plan)</div><div class="metric-value ${pSuccess(40) < 0.2 ? 'cell-red' : pSuccess(40) < 0.5 ? 'cell-amber' : 'cell-green'}">${fmtPct(pSuccess(40))}</div><div class="metric-sub">coherent 40h plan</div></div>
-  `;
-
-  document.getElementById('recklessBody').innerHTML = tiers.map(t => {
-    const m = t.cps * P.stepsHr * 24 * 30;
-    return `<tr><td>${t.label}</td><td style="font-family:var(--mono);font-size:12.5px">${t.t50}h</td><td>${fmt$(t.cps)}</td><td>${fmt$(m)}</td>
-      <td class="${pSuccess(40,t.t50) < 0.2 ? 'cell-red' : pSuccess(40,t.t50) < 0.5 ? 'cell-amber' : 'cell-green'}">${fmtPct(pSuccess(40, t.t50))}</td>
-      <td class="${pSuccess(160,t.t50) < 0.2 ? 'cell-red' : pSuccess(160,t.t50) < 0.5 ? 'cell-amber' : 'cell-green'}">${fmtPct(pSuccess(160, t.t50))}</td>
-      <td class="${pSuccess(480,t.t50) < 0.2 ? 'cell-red' : pSuccess(480,t.t50) < 0.5 ? 'cell-amber' : 'cell-green'}">${fmtPct(pSuccess(480, t.t50))}</td>
-      <td>${fmt$(m * 12)}</td></tr>`;
-  }).join('');
-
-  const ctx = document.getElementById('recklessChart').getContext('2d');
-  if (recklessChart) recklessChart.destroy();
-  recklessChart = new Chart(ctx, {
-    type: 'scatter',
-    data: { datasets: [{ label: 'Capability tiers', data: tiers.map(t => ({ x: pSuccess(160, t.t50) * 100, y: t.cps * P.stepsHr * 24 * 30, label: t.label })), backgroundColor: '#c44d2b', borderColor: '#c44d2b', pointRadius: 7, pointHoverRadius: 10 }] },
-    options: { responsive: true, maintainAspectRatio: true, aspectRatio: 2.2, scales: {
-      x: { type: 'linear', min: 0, max: 100, title: { display: true, text: 'P(1-month plan) %', font: chartFont }, ticks: { callback: v => v + '%', font: monoFont, color: mutedColor }, grid: { color: gridColor } },
-      y: { type: 'logarithmic', title: { display: true, text: 'Monthly cost', font: chartFont }, ticks: { callback: v => fmt$(v), font: monoFont, color: mutedColor }, grid: { color: gridColor } }
-    }, plugins: { legend: { display: false }, tooltip: { callbacks: { title: i => i[0].raw.label, label: i => [` Monthly: ${fmt$(i.raw.y)}`, ` P(1-month): ${i.raw.x.toFixed(1)}%`] }, titleFont: chartFont, bodyFont: { family: "'JetBrains Mono'", size: 12 } } } }
-  });
-
-  document.getElementById('recklessInsight').innerHTML = `<p>The problem is not cost but capability. At current settings, P(1-month plan) = <strong>${fmtPct(currentP1m)}</strong>. For reliable month-long autonomy (>90%), you need T<sub>50</sub> in the hundreds of hours AND &kappa; well below 0.70.</p>`;
-}
-
-// ── Tab 4: The Full Chain ──
-function renderChain() {
-  const viable80 = totalAgentCost(80) / humanCost(80);
-  const c1Status = viable80 < 1.0 ? 'green' : viable80 < 3.0 ? 'amber' : 'red';
-  const p40 = pSuccess(40);
-  const c2Status = p40 < 0.2 ? 'red' : p40 < 0.5 ? 'amber' : 'green';
-  const ps80 = pSuccess(80);
-  const singleAttemptCost80 = P.costStep * P.stepsHr * 80;
-  const failRate80 = 1 - ps80;
-  const clientPriceEst = Math.max(humanCost(80) * 1.25, totalAgentCost(80) * 1.25);
-  const blendedRevNoVerif = clientPriceEst * (1 - failRate80 * 0.5);
-  const marginNoVerif = blendedRevNoVerif - singleAttemptCost80;
-  const marginWithVerif = clientPriceEst - totalAgentCost(80);
-  const verifSelfDefeating = marginNoVerif < marginWithVerif;
-  const c3Status = verifSelfDefeating ? 'green' : (failRate80 > 0.5 ? 'amber' : 'red');
-  const pMonthPlan = pSuccess(160);
-  const c4Status = pMonthPlan > 0.5 ? 'red' : pMonthPlan > 0.15 ? 'amber' : 'green';
-
-  document.getElementById('chainGrid').innerHTML = `
-    <div class="chain-card"><div class="chain-header"><div class="chain-status ${c1Status}"></div><h3>Condition 1: Task of sufficient complexity is affordable</h3></div><div class="chain-detail">2-week task costs ${fmtRatio(viable80)} of human cost.</div><div class="chain-numbers">Agent: ${fmt$(totalAgentCost(80))} vs Human: ${fmt$(humanCost(80))}</div></div>
-    <div class="chain-card"><div class="chain-header"><div class="chain-status ${c2Status}"></div><h3>Condition 2: Task grants sufficient autonomy</h3></div><div class="chain-detail">P(success on 40h) = ${fmtPct(p40)}. ${p40 < 0.3 ? 'Too unreliable for open-ended work.' : p40 < 0.6 ? 'Marginally reliable.' : 'Reliable enough for open-ended deployment.'}</div><div class="chain-numbers">P(40h) = ${fmtPct(p40)} &middot; E[attempts] = ${fmtAttempts(eAttempts(40))}</div></div>
-    <div class="chain-card"><div class="chain-header"><div class="chain-status ${c3Status}"></div><h3>Condition 3: Verification economics</h3></div><div class="chain-detail">${verifSelfDefeating ? 'Cutting verification reduces per-output margin. Verification is self-reinforcing.' : 'Per-output economics favour cutting verification. Churn and reputation push back.'}</div><div class="chain-numbers">Verification: ${fmt$(verifCost(80))} &middot; ${verifSelfDefeating ? '\u2713 Economics support verification' : '\u26a0 Economics favour cutting'}</div></div>
-    <div class="chain-card"><div class="chain-header"><div class="chain-status ${c4Status}"></div><h3>Condition 4: Agent sustains operation beyond intended scope</h3></div><div class="chain-detail">P(1-month plan) = ${fmtPct(pMonthPlan)}. ${pMonthPlan < 0.15 ? 'Agent fails on its own goals before becoming dangerous.' : pMonthPlan < 0.5 ? 'Low but non-trivial success rate. Concerning with reckless deployment.' : 'Dangerous regime.'}</div><div class="chain-numbers">P(1-month) = ${fmtPct(pMonthPlan)} &middot; Monthly cost: ${fmt$(P.costStep * P.stepsHr * 24 * 30)}</div></div>
-  `;
-
-  const overallClass = c4Status === 'red' ? 'insight' : c4Status === 'amber' ? 'insight blue-insight' : 'insight green-insight';
-  let overallMsg;
-  if (c4Status === 'red') overallMsg = `The economic chain is close to fully satisfied. An agent with T<sub>50</sub> = ${P.t50}h and &kappa; = ${P.kappa} can execute month-long plans with non-trivial reliability.`;
-  else if (c4Status === 'amber') overallMsg = `Chain partially blocked. Condition 4 is the barrier: plans fail ${((1-pMonthPlan)*100).toFixed(0)}% on month-long horizons.`;
-  else overallMsg = `Chain firmly blocked at Condition 4. P(1-month plan) = <strong>${fmtPct(pMonthPlan)}</strong>. The firebreak is wide. ${P.kappa >= 0.6 ? 'Closing it requires a &kappa; breakthrough.' : ''}`;
-  document.getElementById('chainInsight').className = overallClass;
-  document.getElementById('chainInsight').innerHTML = `<p>${overallMsg}</p>`;
-
-  const ctx = document.getElementById('chainChart').getContext('2d');
-  const c1Score = Math.min(100, Math.max(0, (1 - (viable80 - 1) / 5) * 100));
-  const c2Score = Math.min(100, p40 * 100 * 2);
-  const c3Score = verifSelfDefeating ? 85 : (failRate80 > 0.5 ? 40 : 25);
-  const c4Score = Math.min(100, pMonthPlan * 100 * 2);
-  if (chainChart) chainChart.destroy();
-  chainChart = new Chart(ctx, {
-    type: 'bar',
-    data: { labels: ['1. Complexity\naffordable', '2. Sufficient\nautonomy', '3. Verification\neconomics', '4. Beyond intended\nscope'], datasets: [{ label: 'Condition strength', data: [c1Score, c2Score, 100 - c3Score, c4Score],
-      backgroundColor: [c1Score > 60 ? 'rgba(196,77,43,0.7)' : c1Score > 30 ? 'rgba(184,134,11,0.7)' : 'rgba(45,122,79,0.7)', c2Score > 60 ? 'rgba(196,77,43,0.7)' : c2Score > 30 ? 'rgba(184,134,11,0.7)' : 'rgba(45,122,79,0.7)', 'rgba(45,122,79,0.7)', c4Score > 60 ? 'rgba(196,77,43,0.7)' : c4Score > 30 ? 'rgba(184,134,11,0.7)' : 'rgba(45,122,79,0.7)'],
-      borderColor: [c1Score > 60 ? '#c44d2b' : c1Score > 30 ? '#b8860b' : '#2d7a4f', c2Score > 60 ? '#c44d2b' : c2Score > 30 ? '#b8860b' : '#2d7a4f', '#2d7a4f', c4Score > 60 ? '#c44d2b' : c4Score > 30 ? '#b8860b' : '#2d7a4f'], borderWidth: 1.5, borderRadius: 4 }] },
-    options: { responsive: true, maintainAspectRatio: true, aspectRatio: 2.2, indexAxis: 'y', scales: {
-      x: { min: 0, max: 100, title: { display: true, text: 'Risk level (higher = more dangerous)', font: chartFont }, ticks: { callback: v => v + '%', font: monoFont, color: mutedColor }, grid: { color: gridColor } },
-      y: { ticks: { font: chartFont }, grid: { display: false } }
-    }, plugins: { legend: { display: false }, tooltip: { callbacks: { label: i => [`Ratio: ${fmtRatio(viable80)}`, `P(40h): ${fmtPct(p40)}`, 'Oversight present', `P(1-month): ${fmtPct(pMonthPlan)}`][i.dataIndex] }, titleFont: chartFont, bodyFont: { family: "'JetBrains Mono'", size: 12 } } } }
-  });
-}
-
-// ── Tab 5: Bubble Dynamics ──
-function getT50AtDate(year, bustYear, baseT50, postBustDoubleMonths) {
-  const baseDoubleMonths = 7;
-  const monthsFromNow = (year - 2026) * 12;
-  if (monthsFromNow <= 0) return baseT50;
-  const bustMonths = (bustYear - 2026) * 12;
-  if (monthsFromNow <= bustMonths) return baseT50 * Math.pow(2, monthsFromNow / baseDoubleMonths);
-  const t50AtBust = baseT50 * Math.pow(2, bustMonths / baseDoubleMonths);
-  return t50AtBust * Math.pow(2, (monthsFromNow - bustMonths) / postBustDoubleMonths);
-}
-
-function renderBubble() {
-  const bustYear = parseFloat(document.getElementById('bustYear').value);
-  const postBustDouble = parseFloat(document.getElementById('postBustDouble').value);
-  const costMult = parseFloat(document.getElementById('costMult').value);
-  const baseT50 = parseFloat(document.getElementById('baseT50').value);
-  const k = P.kappa;
-
-  const years = [];
-  for (let y = 2026; y <= 2031; y += 0.1) years.push(Math.round(y * 10) / 10);
-
-  const baselineData = years.map(y => ({ x: y, y: getT50AtDate(y, 2050, baseT50, 7) }));
-  const bustData = years.map(y => ({ x: y, y: getT50AtDate(y, bustYear, baseT50, postBustDouble) }));
-
-  // T50 trajectory chart
-  const ctx1 = document.getElementById('bubbleT50Chart').getContext('2d');
-  if (bubbleT50Chart) bubbleT50Chart.destroy();
-  bubbleT50Chart = new Chart(ctx1, {
-    type: 'line',
-    data: { datasets: [
-      { label: 'Baseline (7-month doubling)', data: baselineData, borderColor: 'rgba(45, 122, 79, 0.8)', borderWidth: 2.5, tension: 0.3, pointRadius: 0, fill: false },
-      { label: 'Post-bust (' + postBustDouble + '-month doubling)', data: bustData, borderColor: 'rgba(196, 77, 43, 0.8)', borderWidth: 2.5, tension: 0.3, pointRadius: 0, fill: false }
-    ]},
-    options: { responsive: true, maintainAspectRatio: true, aspectRatio: 2.2, interaction: { mode: 'index', intersect: false }, scales: {
-      x: { type: 'linear', min: 2026, max: 2031, title: { display: true, text: 'Year', font: chartFont }, ticks: { font: monoFont, stepSize: 0.5, callback: v => { const yr = Math.floor(v); return (v - yr) < 0.05 ? yr.toString() : ''; } }, grid: { color: gridColor } },
-      y: { type: 'logarithmic', title: { display: true, text: 'T\u2085\u2080 (hours)', font: chartFont }, ticks: { callback: v => v + 'h', font: monoFont }, grid: { color: gridColor } }
-    }, plugins: { legend: { labels: { font: chartFont, usePointStyle: true, pointStyle: 'line' } }, tooltip: { callbacks: { title: i => { const y = i[0].raw.x; return Math.floor(y) + ' Q' + (Math.round((y % 1) * 4) + 1); }, label: i => ` ${i.dataset.label}: ${i.raw.y.toFixed(1)}h` }, titleFont: chartFont, bodyFont: { family: "'JetBrains Mono'", size: 12 } } } }
-  });
-
-  // P(1-month plan) chart
-  const wLam = t50 => t50 / Math.pow(Math.LN2, 1 / k);
-  const pMonth = t50 => Math.exp(-Math.pow(160 / wLam(t50), k));
-
-  const baselinePlan = years.map(y => ({ x: y, y: pMonth(getT50AtDate(y, 2050, baseT50, 7)) * 100 }));
-  const bustPlan = years.map(y => ({ x: y, y: pMonth(getT50AtDate(y, bustYear, baseT50, postBustDouble)) * 100 }));
-
-  const ctx2 = document.getElementById('bubblePlanChart').getContext('2d');
-  if (bubblePlanChart) bubblePlanChart.destroy();
-  bubblePlanChart = new Chart(ctx2, {
-    type: 'line',
-    data: { datasets: [
-      { label: 'Baseline', data: baselinePlan, borderColor: 'rgba(45, 122, 79, 0.8)', borderWidth: 2.5, tension: 0.3, pointRadius: 0, fill: false },
-      { label: 'Post-bust', data: bustPlan, borderColor: 'rgba(196, 77, 43, 0.8)', borderWidth: 2.5, tension: 0.3, pointRadius: 0, fill: false },
-      { label: '25% threshold', data: years.map(y => ({x: y, y: 25})), borderColor: 'rgba(0,0,0,0.2)', borderWidth: 1, borderDash: [4,4], pointRadius: 0, fill: false },
-      { label: '50% threshold', data: years.map(y => ({x: y, y: 50})), borderColor: 'rgba(0,0,0,0.2)', borderWidth: 1, borderDash: [8,4], pointRadius: 0, fill: false }
-    ]},
-    options: { responsive: true, maintainAspectRatio: true, aspectRatio: 2.2, scales: {
-      x: { type: 'linear', min: 2026, max: 2031, title: { display: true, text: 'Year', font: chartFont }, ticks: { font: monoFont, stepSize: 0.5, callback: v => (v - Math.floor(v)) < 0.05 ? Math.floor(v).toString() : '' }, grid: { color: gridColor } },
-      y: { type: 'linear', min: 0, max: 80, title: { display: true, text: 'P(1-month plan) %', font: chartFont }, ticks: { callback: v => v + '%', font: monoFont }, grid: { color: gridColor } }
-    }, plugins: { legend: { labels: { font: chartFont, usePointStyle: true, pointStyle: 'line', filter: i => i.datasetIndex < 2 } }, tooltip: { filter: i => i.datasetIndex < 2, callbacks: { title: i => { const y = i[0].raw.x; return Math.floor(y) + ' Q' + (Math.round((y % 1) * 4) + 1); }, label: i => ` ${i.dataset.label}: ${i.raw.y.toFixed(1)}%` }, titleFont: chartFont, bodyFont: { family: "'JetBrains Mono'", size: 12 } } } }
-  });
-
-  // Metrics
-  const t50AtBust = getT50AtDate(bustYear, 2050, baseT50, 7);
-  const pMonthAtBust = pMonth(t50AtBust);
-
-  function findCrossing(threshold, bustYr, postDouble) {
-    for (let y = 2026; y <= 2035; y += 0.05) {
-      if (pMonth(getT50AtDate(y, bustYr, baseT50, postDouble)) >= threshold) return y;
-    }
-    return null;
-  }
-
-  const base25 = findCrossing(0.25, 2050, 7);
-  const bust25 = findCrossing(0.25, bustYear, postBustDouble);
-  const base50 = findCrossing(0.50, 2050, 7);
-  const bust50 = findCrossing(0.50, bustYear, postBustDouble);
-
-  function yearToLabel(y) {
-    if (!y) return 'Never (by 2035)';
-    const yr = Math.floor(y); const mo = Math.round((y - yr) * 12);
-    const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-    return months[Math.min(mo, 11)] + ' ' + yr;
-  }
-
-  function delayLabel(base, bust) {
-    if (!bust) return 'Indefinite';
-    if (!base) return 'n/a';
-    const m = Math.round((bust - base) * 12);
-    return m <= 0 ? 'None' : m + ' months';
-  }
-
-  document.getElementById('bubbleMetrics').innerHTML = `
-    <div class="metric-card"><div class="metric-label">T\u2085\u2080 at bust</div><div class="metric-value" style="color:var(--accent)">${t50AtBust.toFixed(1)}h</div><div class="metric-sub">${yearToLabel(bustYear)}</div></div>
-    <div class="metric-card"><div class="metric-label">P(1-month) at bust</div><div class="metric-value ${pMonthAtBust < 0.1 ? 'cell-red' : 'cell-amber'}">${fmtPct(pMonthAtBust)}</div><div class="metric-sub">at \u03ba = ${P.kappa.toFixed(2)}</div></div>
-    <div class="metric-card"><div class="metric-label">P(1-month) > 25%</div><div class="metric-value" style="color:${bust25 ? 'var(--accent)' : 'var(--green)'}">${bust25 ? yearToLabel(bust25) : 'Never'}</div><div class="metric-sub">delay: ${delayLabel(base25, bust25)}</div></div>
-    <div class="metric-card"><div class="metric-label">P(1-month) > 50%</div><div class="metric-value" style="color:${bust50 ? 'var(--accent)' : 'var(--green)'}">${bust50 ? yearToLabel(bust50) : 'Never'}</div><div class="metric-sub">delay: ${delayLabel(base50, bust50)}</div></div>
-  `;
-
-  // Milestone delay table
-  const milestones = [
-    { label: '1-week tasks viable (cost < human)', test: t50 => { const tc = P.costStep * costMult * P.stepsHr * 40 / pSuccess(40, t50, k) + P.reviewFrac * 40 * P.humanRate / pSuccess(40, t50, k); return tc < humanCost(40); }},
-    { label: 'P(1-month) > 10%', test: t50 => pMonth(t50) > 0.10 },
-    { label: 'P(1-month) > 25%', test: t50 => pMonth(t50) > 0.25 },
-    { label: 'P(1-month) > 50%', test: t50 => pMonth(t50) > 0.50 },
-    { label: 'Self-sustaining pair bootstrap > 10%', test: t50 => pSuccess(160, t50, k) > 0.10 },
-  ];
-
-  function findMilestone(test, bustYr, postDouble) {
-    for (let y = 2026; y <= 2035; y += 0.05) {
-      if (test(getT50AtDate(y, bustYr, baseT50, postDouble))) return y;
-    }
-    return null;
-  }
-
-  document.getElementById('bubbleBody').innerHTML = milestones.map(m => {
-    const baseDate = findMilestone(m.test, 2050, 7);
-    const bustDate = findMilestone(m.test, bustYear, postBustDouble);
-    return `<tr><td>${m.label}</td><td style="font-family:var(--mono);font-size:12.5px">${yearToLabel(baseDate)}</td><td style="font-family:var(--mono);font-size:12.5px">${yearToLabel(bustDate)}</td><td class="${!bustDate ? 'cell-green' : bustDate > (baseDate||2050) + 1 ? 'cell-green' : 'cell-amber'}" style="font-family:var(--mono);font-size:12.5px">${delayLabel(baseDate, bustDate)}</td></tr>`;
-  }).join('');
-
-  const delayMonths = bust25 && base25 ? Math.round((bust25 - base25) * 12) : null;
-  document.getElementById('bubbleInsight1').innerHTML = `<p>A correction at <strong>${yearToLabel(bustYear)}</strong> (T\u2085\u2080 = ${t50AtBust.toFixed(1)}h) slowing growth to ${postBustDouble}-month doubling ${delayMonths ? `delays the 25% month-long plan threshold by <strong>${delayMonths} months</strong>.` : '<strong>prevents month-long plans from ever reaching 25%</strong> (within the projection window).'} ${postBustDouble >= 24 ? 'At this rate, dangerous autonomy milestones are pushed to 2030 or beyond.' : postBustDouble >= 14 ? 'Roughly 18\u201324 months of additional time for alignment and governance.' : 'Minimal delay: the bust barely affects the trajectory.'}</p>`;
-
-  // Pair survival table
-  const pairTaskH = Math.min(t50AtBust, 40);
-  const marketPrice = P.humanRate * pairTaskH;
-  const costScenarios = [
-    { label: 'Fire sale (0.25\u00d7)', mult: 0.25 },
-    { label: 'Unchanged (1\u00d7)', mult: 1.0 },
-    { label: 'Price hike (2\u00d7)', mult: 2.0 },
-    { label: 'Oligopoly (4\u00d7)', mult: 4.0 },
-    { label: 'Extreme (6\u00d7)', mult: 6.0 },
-  ];
-
-  document.getElementById('pairBody').innerHTML = costScenarios.map(cs => {
-    const costPerDelivered = P.costStep * cs.mult * P.stepsHr * pairTaskH * 1.10 / 0.775;
-    const margin = marketPrice - costPerDelivered;
-    const survives = margin > 0;
-    return `<tr><td>${cs.label}</td><td style="font-family:var(--mono);font-size:12.5px">${fmt$(costPerDelivered)}</td><td style="font-family:var(--mono);font-size:12.5px">${fmt$(marketPrice)}</td><td class="${survives ? 'cell-green' : 'cell-red'}" style="font-family:var(--mono);font-size:12.5px">${fmt$(margin)}</td><td class="${survives ? 'cell-green' : 'cell-red'}">${survives ? 'Yes' : 'No'}</td></tr>`;
-  }).join('');
-
-  const breakEvenMult = marketPrice / (P.costStep * P.stepsHr * pairTaskH * 1.10 / 0.775);
-  document.getElementById('bubbleInsight2').innerHTML = `<p>At T\u2085\u2080 = ${t50AtBust.toFixed(1)}h, the pair operates on ${pairTaskH.toFixed(0)}h tasks (market price ${fmt$(marketPrice)}). It survives inference cost increases up to <strong>${breakEvenMult.toFixed(1)}\u00d7</strong> current pricing. ${breakEvenMult > 4 ? 'The pair is nearly unkillable by price changes alone.' : breakEvenMult > 2 ? 'Survives moderate price increases.' : 'Vulnerable to significant price increases.'} But its capability ceiling is frozen: P(160h plan) = <strong>${fmtPct(pMonth(t50AtBust))}</strong>. The bust kills growth potential without killing the pair itself.</p>`;
-
-  // Coalition chart
-  const ctx3 = document.getElementById('coalitionChart').getContext('2d');
-  const nPairsArr = [1, 2, 3, 4, 5, 6, 8, 10, 12, 16];
-  const t50Coal = Math.max(t50AtBust, P.t50);
-  const pMonthCoal = pMonth(t50Coal);
-
-  const singleRetries = nPairsArr.map(n => ({ x: n, y: (1 - Math.pow(1 - pMonthCoal, n)) * 100 }));
-  const coordNoOverhead = nPairsArr.map(n => {
-    const subTask = 160 / n;
-    return { x: n, y: Math.pow(pSuccess(subTask, t50Coal, k), n) * 100 };
-  });
-  const coordinated = nPairsArr.map(n => {
-    const subTask = 160 / n;
-    const coordHours = 40 + n * 12;
-    return { x: n, y: pSuccess(coordHours, t50Coal, k) * Math.pow(pSuccess(subTask, t50Coal, k), n) * 100 };
-  });
-
-  if (coalitionChartObj) coalitionChartObj.destroy();
-  coalitionChartObj = new Chart(ctx3, {
-    type: 'line',
-    data: { datasets: [
-      { label: 'Single pair, N retries', data: singleRetries, borderColor: 'rgba(45, 122, 79, 0.8)', borderWidth: 2.5, tension: 0.3, pointRadius: 4, fill: false },
-      { label: 'N pairs (no overhead)', data: coordNoOverhead, borderColor: 'rgba(53, 104, 168, 0.8)', borderWidth: 2, tension: 0.3, pointRadius: 3, borderDash: [4,3], fill: false },
-      { label: 'N pairs (with overhead)', data: coordinated, borderColor: 'rgba(196, 77, 43, 0.8)', borderWidth: 2.5, tension: 0.3, pointRadius: 4, fill: false }
-    ]},
-    options: { responsive: true, maintainAspectRatio: true, aspectRatio: 2.2, scales: {
-      x: { type: 'linear', min: 1, max: 16, title: { display: true, text: 'Number of pairs / attempts', font: chartFont }, ticks: { font: monoFont, stepSize: 2 }, grid: { color: gridColor } },
-      y: { type: 'linear', min: 0, title: { display: true, text: 'P(160h plan succeeds) %', font: chartFont }, ticks: { callback: v => v + '%', font: monoFont }, grid: { color: gridColor } }
-    }, plugins: { legend: { labels: { font: { family: "'Source Sans 3'", size: 11 }, usePointStyle: true, pointStyle: 'circle' } }, tooltip: { callbacks: { title: i => i[0].raw.x + ' pairs/attempts', label: i => ` ${i.dataset.label}: ${i.raw.y.toFixed(1)}%` }, titleFont: chartFont, bodyFont: { family: "'JetBrains Mono'", size: 12 } } } }
-  });
-
-  const single10 = (1 - Math.pow(1 - pMonthCoal, 10)) * 100;
-  const coal10 = Math.pow(pSuccess(16, t50Coal, k), 10) * 100;
-  document.getElementById('coalitionInsight').innerHTML = `<p>At T\u2085\u2080 = ${t50Coal.toFixed(0)}h: one pair retrying 10 times achieves <strong>${single10.toFixed(1)}%</strong>. Ten coordinated pairs (each doing 16h) achieve <strong>${coal10.toFixed(1)}%</strong> without overhead. Retrying wins by <strong>${coal10 > 0 ? (single10/coal10).toFixed(0) : '\u221e'}\u00d7</strong>. This is because \u03ba < 1 means each fresh agent restarts from peak hazard rate. Decomposition destroys the benefit of the declining hazard.</p>`;
-}
-
-// ── Master render ──
-function renderAll() {
-  renderVerification();
-  renderSelfSustain();
-  renderReckless();
-  renderChain();
-  renderBubble();
-}
-
-// ── Wiring ──
-function wireSlider(id, paramKey, formatter) {
-  const el = document.getElementById(id);
-  const valEl = document.getElementById(id + '-val');
-  el.addEventListener('input', () => {
-    const v = parseFloat(el.value);
-    P[paramKey] = v;
-    valEl.textContent = formatter(v);
-    document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('active'));
-    renderAll();
-  });
-}
-
-wireSlider('t50', 't50', v => v + 'h');
-wireSlider('kappa', 'kappa', v => v.toFixed(2));
-wireSlider('costStep', 'costStep', v => '$' + v.toFixed(v < 0.1 ? 3 : 2));
-wireSlider('humanRate', 'humanRate', v => '$' + v.toFixed(0));
-wireSlider('stepsHr', 'stepsHr', v => v.toFixed(0));
-wireSlider('reviewFrac', 'reviewFrac', v => (v * 1).toFixed(0) + '%');
-
-document.getElementById('reviewFrac').addEventListener('input', () => {
-  P.reviewFrac = parseFloat(document.getElementById('reviewFrac').value) / 100;
-});
-
-document.getElementById('clientPrice').addEventListener('input', () => {
-  document.getElementById('clientPrice-val').textContent = '$' + parseInt(document.getElementById('clientPrice').value).toLocaleString();
-  renderRevenueLoop();
-});
-document.getElementById('rejectRate').addEventListener('input', () => {
-  document.getElementById('rejectRate-val').textContent = parseInt(document.getElementById('rejectRate').value) + '%';
-  renderRevenueLoop();
-});
-
-['qualityChurn', 'baseAcq', 'tasksPerMonth'].forEach(id => {
-  document.getElementById(id).addEventListener('input', () => {
-    const v = parseInt(document.getElementById(id).value);
-    document.getElementById(id + '-val').textContent = id === 'qualityChurn' ? v + '%' : v;
-    renderCohortModel();
-  });
-});
-
-// Bubble dynamics sliders
-document.getElementById('bustYear').addEventListener('input', () => {
-  const v = parseFloat(document.getElementById('bustYear').value);
-  const yr = Math.floor(v); const frac = v - yr;
-  let label;
-  if (frac < 0.2) label = 'early ' + yr;
-  else if (frac < 0.4) label = 'Q1 ' + yr;
-  else if (frac < 0.6) label = 'mid-' + yr;
-  else if (frac < 0.8) label = 'Q3 ' + yr;
-  else label = 'late ' + yr;
-  document.getElementById('bustYear-val').textContent = label;
-  renderBubble();
-});
-document.getElementById('postBustDouble').addEventListener('input', () => {
-  document.getElementById('postBustDouble-val').textContent = parseInt(document.getElementById('postBustDouble').value) + ' mo';
-  renderBubble();
-});
-document.getElementById('costMult').addEventListener('input', () => {
-  document.getElementById('costMult-val').textContent = parseFloat(document.getElementById('costMult').value).toFixed(1) + '\u00d7';
-  renderBubble();
-});
-document.getElementById('baseT50').addEventListener('input', () => {
-  document.getElementById('baseT50-val').textContent = parseFloat(document.getElementById('baseT50').value) + 'h';
-  renderBubble();
-});
-
-// Presets
-window.applyPreset = function(name) {
-  const p = presets[name];
-  Object.assign(P, p);
-  document.getElementById('t50').value = p.t50;
-  document.getElementById('t50-val').textContent = p.t50 + 'h';
-  document.getElementById('kappa').value = p.kappa;
-  document.getElementById('kappa-val').textContent = p.kappa.toFixed(2);
-  document.getElementById('costStep').value = p.costStep;
-  document.getElementById('costStep-val').textContent = '$' + p.costStep.toFixed(p.costStep < 0.1 ? 3 : 2);
-  document.getElementById('humanRate').value = p.humanRate;
-  document.getElementById('humanRate-val').textContent = '$' + p.humanRate;
-  document.getElementById('stepsHr').value = p.stepsHr;
-  document.getElementById('stepsHr-val').textContent = p.stepsHr;
-  document.getElementById('reviewFrac').value = p.reviewFrac * 100;
-  document.getElementById('reviewFrac-val').textContent = (p.reviewFrac * 100).toFixed(0) + '%';
-  document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('active'));
-  const btn = document.querySelector(`.preset-btn[onclick="applyPreset('${name}')"]`);
-  if (btn) btn.classList.add('active');
-  renderAll();
-};
-
-// Tabs
-document.querySelectorAll('.tab').forEach(tab => {
-  tab.addEventListener('click', () => {
-    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-    tab.classList.add('active');
-    document.getElementById('tab-' + tab.dataset.tab).classList.add('active');
-    setTimeout(renderAll, 50);
-  });
-});
-
+function renderAll(){renderVerification();renderChain();renderBubble()}
+
+function wireSlider(id,key,fmt){const el=document.getElementById(id),val=document.getElementById(id+'-val');el.addEventListener('input',()=>{P[key]=parseFloat(el.value);val.textContent=fmt(P[key]);document.querySelectorAll('.preset-btn').forEach(b=>b.classList.remove('active'));renderAll()})}
+wireSlider('t50','t50',v=>v+'h');wireSlider('kappa','kappa',v=>v.toFixed(2));wireSlider('costStep','costStep',v=>'$'+v.toFixed(v<.1?3:2));wireSlider('humanRate','humanRate',v=>'$'+v.toFixed(0));wireSlider('stepsHr','stepsHr',v=>v.toFixed(0));wireSlider('reviewFrac','reviewFrac',v=>(v*1).toFixed(0)+'%');
+document.getElementById('reviewFrac').addEventListener('input',()=>{P.reviewFrac=parseFloat(document.getElementById('reviewFrac').value)/100});
+document.getElementById('bustYear').addEventListener('input',()=>{const v=parseFloat(document.getElementById('bustYear').value),yr=Math.floor(v),f=v-yr;document.getElementById('bustYear-val').textContent=f<.2?'early '+yr:f<.4?'Q1 '+yr:f<.6?'mid-'+yr:f<.8?'Q3 '+yr:'late '+yr;renderBubble()});
+document.getElementById('postBustDouble').addEventListener('input',()=>{document.getElementById('postBustDouble-val').textContent=parseInt(document.getElementById('postBustDouble').value)+' mo';renderBubble()});
+document.getElementById('costMult').addEventListener('input',()=>{document.getElementById('costMult-val').textContent=parseFloat(document.getElementById('costMult').value).toFixed(1)+'\u00d7';renderBubble()});
+window.applyPreset=function(name){const p=presets[name];Object.assign(P,p);document.getElementById('t50').value=p.t50;document.getElementById('t50-val').textContent=p.t50+'h';document.getElementById('kappa').value=p.kappa;document.getElementById('kappa-val').textContent=p.kappa.toFixed(2);document.getElementById('costStep').value=p.costStep;document.getElementById('costStep-val').textContent='$'+p.costStep.toFixed(p.costStep<.1?3:2);document.getElementById('humanRate').value=p.humanRate;document.getElementById('humanRate-val').textContent='$'+p.humanRate;document.getElementById('stepsHr').value=p.stepsHr;document.getElementById('stepsHr-val').textContent=p.stepsHr;document.getElementById('reviewFrac').value=p.reviewFrac*100;document.getElementById('reviewFrac-val').textContent=(p.reviewFrac*100).toFixed(0)+'%';document.querySelectorAll('.preset-btn').forEach(b=>b.classList.remove('active'));const btn=document.querySelector(`.preset-btn[onclick="applyPreset('${name}')"]`);if(btn)btn.classList.add('active');renderAll()};
+document.querySelectorAll('.tab').forEach(tab=>{tab.addEventListener('click',()=>{document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));document.querySelectorAll('.tab-content').forEach(c=>c.classList.remove('active'));tab.classList.add('active');document.getElementById('tab-'+tab.dataset.tab).classList.add('active');setTimeout(renderAll,50)})});
 renderAll();
 </script>
 </body>
