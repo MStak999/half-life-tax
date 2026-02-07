@@ -759,58 +759,6 @@
 
       <div class="insight" id="cohortInsight"></div>
 
-      <h2 style="margin-top:24px;">Correlated Failures: The Economics of AI Verification</h2>
-      <p>If companies replace human reviewers with AI reviewers, the 63% verification tax largely disappears. But the AI verifier may share the agent's blind spots. The correlation parameter ρ captures this: at ρ=0 the verifier is fully independent; at ρ=1 it has identical blind spots to the agent. The alarming finding: AI verification is economically dominant at <em>every</em> correlation level.</p>
-
-      <div class="params-grid" style="margin-bottom:16px;">
-        <div class="param-card">
-          <label>AI verifier base detection rate <span class="unit">(d)</span></label>
-          <div class="slider-row">
-            <input type="range" id="aiDetect" min="0.50" max="0.99" step="0.01" value="0.90">
-            <span class="slider-value" id="aiDetect-val">0.90</span>
-          </div>
-          <div class="param-hint">How often the AI verifier catches a randomly selected failure. 0.90 = good; 0.50 = poor.</div>
-        </div>
-        <div class="param-card">
-          <label>Correlation with agent failures <span class="unit">(ρ)</span></label>
-          <div class="slider-row">
-            <input type="range" id="aiCorr" min="0" max="1.0" step="0.05" value="0.50">
-            <span class="slider-value" id="aiCorr-val">0.50</span>
-          </div>
-          <div class="param-hint">Degree of shared blind spots. 0 = independent. 1 = identical failures. Same model family ≈ 0.5–0.8.</div>
-        </div>
-        <div class="param-card">
-          <label>AI verification cost <span class="unit">(% of human)</span></label>
-          <div class="slider-row">
-            <input type="range" id="aiVerifCostRatio" min="1" max="20" step="1" value="3">
-            <span class="slider-value" id="aiVerifCostRatio-val">3%</span>
-          </div>
-          <div class="param-hint">Cost of AI verification as % of human verification cost. AI review is cheap: typically 1–10%.</div>
-        </div>
-      </div>
-
-      <div class="metrics-grid metrics-grid-4" id="aiVerifMetrics"></div>
-
-      <div class="table-wrap">
-        <table id="aiVerifTable">
-          <thead>
-            <tr>
-              <th>Verification method</th>
-              <th>Cost per output</th>
-              <th>Precision</th>
-              <th>Slip-through</th>
-              <th>Margin per output</th>
-              <th>Margin %</th>
-            </tr>
-          </thead>
-          <tbody id="aiVerifBody"></tbody>
-        </table>
-      </div>
-      <div class="table-note">Precision = P(output is genuinely good | verifier passes it). Slip-through = fraction of delivered outputs that are failures. Margin uses client price from above. "Effective catch" = d × (1 − ρ).</div>
-
-      <canvas id="aiVerifChart" height="280"></canvas>
-
-      <div class="insight" id="aiVerifInsight"></div>
     </div>
   </div>
 
@@ -1021,7 +969,7 @@ function humanCost(taskHours) {
 }
 
 // ── Charts ──
-let verifChart, selfPlanChart, recklessChart, chainChart, aiVerifChartObj, cohortChartObj;
+let verifChart, selfPlanChart, recklessChart, chainChart, cohortChartObj;
 
 // ── Tab 1: Verification Economics ──
 function renderVerification() {
@@ -1326,9 +1274,8 @@ function renderRevenueLoop() {
 
   document.getElementById('revenueInsight').innerHTML = `<p>${insightText}</p>`;
 
-  // Also render cohort model and AI verification panel
+  // Also render cohort model
   renderCohortModel();
-  renderAIVerification();
 }
 
 function renderCohortModel() {
@@ -1491,212 +1438,7 @@ function renderCohortModel() {
   document.getElementById('cohortInsight').innerHTML = `<p>${cohortText}</p>`;
 }
 
-function renderAIVerification() {
-  const d = parseFloat(document.getElementById('aiDetect').value);
-  const rho = parseFloat(document.getElementById('aiCorr').value);
-  const cRatio = parseFloat(document.getElementById('aiVerifCostRatio').value) / 100;
-  const clientPrice = parseFloat(document.getElementById('clientPrice').value);
-  const rejectRate = parseFloat(document.getElementById('rejectRate').value) / 100;
-
-  const taskH = 80;
-  const ps = pSuccess(taskH);
-  const ea = eAttempts(taskH);
-  const failRate = 1 - ps;
-  const humanVerifTotal = verifCost(taskH);
-  const compTotal = computeCost(taskH);
-  const humanTotal = compTotal + humanVerifTotal;
-  const hc = humanCost(taskH);
-
-  // AI verification economics
-  const effectiveCatch = d * (1 - rho);
-  const aiVerifCostTotal = humanVerifTotal * cRatio;
-
-  // Per attempt: what passes AI verification?
-  const pPassGood = 1.0; // AI always passes genuine successes
-  const pPassBad = 1 - effectiveCatch; // fraction of failures that slip through
-
-  // Per cycle of ea attempts: 1 success + (ea-1) failures
-  const goodPassed = 1; // the 1 success always passes
-  const badPassed = (ea - 1) * pPassBad;
-  const totalPassed = goodPassed + badPassed;
-  const precision = goodPassed / totalPassed;
-  const slipThrough = badPassed / totalPassed;
-
-  // Cost per AI-verified cycle
-  const aiCycleCost = compTotal + aiVerifCostTotal;
-  const costPerOutput = aiCycleCost / totalPassed;
-
-  // Revenue per output (blended: good ones accepted, bad ones sometimes rejected)
-  const revPerGood = clientPrice;
-  const revPerBad = clientPrice * (1 - rejectRate);
-  const blendedRev = (goodPassed * revPerGood + badPassed * revPerBad) / totalPassed;
-  const aiMargin = blendedRev - costPerOutput;
-  const aiMarginPct = blendedRev > 0 ? (aiMargin / blendedRev * 100) : -100;
-
-  // Human verification comparison
-  const humanMargin = clientPrice - humanTotal;
-  const humanMarginPct = clientPrice > 0 ? (humanMargin / clientPrice * 100) : 0;
-
-  // No verification comparison
-  const singleCost = P.costStep * P.stepsHr * taskH;
-  const noVerifBlended = clientPrice * (ps + failRate * (1 - rejectRate));
-  const noVerifMargin = noVerifBlended - singleCost;
-
-  // Metrics
-  document.getElementById('aiVerifMetrics').innerHTML = `
-    <div class="metric-card">
-      <div class="metric-label">Effective catch rate</div>
-      <div class="metric-value" style="color:${effectiveCatch > 0.5 ? 'var(--green)' : effectiveCatch > 0.2 ? 'var(--text-muted)' : 'var(--accent)'}">${(effectiveCatch * 100).toFixed(0)}%</div>
-      <div class="metric-sub">d &times; (1 &minus; &rho;) = ${d.toFixed(2)} &times; ${(1-rho).toFixed(2)}</div>
-    </div>
-    <div class="metric-card">
-      <div class="metric-label">Precision (P(good | passed))</div>
-      <div class="metric-value" style="color:${precision > 0.8 ? 'var(--green)' : precision > 0.5 ? 'var(--text-muted)' : 'var(--accent)'}">${(precision * 100).toFixed(0)}%</div>
-      <div class="metric-sub">${precision < 0.5 ? 'Worse than a coin flip' : precision < 0.7 ? 'Majority good, but many failures' : 'Mostly reliable'}</div>
-    </div>
-    <div class="metric-card">
-      <div class="metric-label">AI verif. margin</div>
-      <div class="metric-value ${aiMargin > 0 ? 'cell-green' : 'cell-red'}">${fmt$(aiMargin)}</div>
-      <div class="metric-sub">${aiMarginPct.toFixed(0)}% per output delivered</div>
-    </div>
-    <div class="metric-card">
-      <div class="metric-label">Human verif. margin</div>
-      <div class="metric-value ${humanMargin > 0 ? 'cell-green' : 'cell-red'}">${fmt$(humanMargin)}</div>
-      <div class="metric-sub">${humanMarginPct.toFixed(0)}% per verified output</div>
-    </div>
-  `;
-
-  // Table
-  document.getElementById('aiVerifBody').innerHTML = `
-    <tr>
-      <td>Human (${(P.reviewFrac*100).toFixed(0)}% review)</td>
-      <td>${fmt$(humanTotal)}</td>
-      <td class="cell-green">~100%</td>
-      <td class="cell-green">~0%</td>
-      <td class="${humanMargin > 0 ? 'cell-green' : 'cell-red'}">${fmt$(humanMargin)}</td>
-      <td>${humanMarginPct.toFixed(0)}%</td>
-    </tr>
-    <tr style="font-weight:600; background:rgba(196,77,43,0.05)">
-      <td>AI (d=${d.toFixed(2)}, &rho;=${rho.toFixed(2)})</td>
-      <td>${fmt$(costPerOutput)}</td>
-      <td class="${precision > 0.7 ? 'cell-green' : precision > 0.5 ? '' : 'cell-red'}">${(precision*100).toFixed(0)}%</td>
-      <td class="${slipThrough < 0.1 ? 'cell-green' : slipThrough < 0.3 ? '' : 'cell-red'}">${(slipThrough*100).toFixed(0)}%</td>
-      <td class="${aiMargin > 0 ? 'cell-green' : 'cell-red'}">${fmt$(aiMargin)}</td>
-      <td>${aiMarginPct.toFixed(0)}%</td>
-    </tr>
-    <tr>
-      <td>No verification</td>
-      <td>${fmt$(singleCost)}</td>
-      <td class="${ps > 0.5 ? '' : 'cell-red'}">${(ps*100).toFixed(0)}%</td>
-      <td class="cell-red">${(failRate*100).toFixed(0)}%</td>
-      <td class="${noVerifMargin > 0 ? 'cell-green' : 'cell-red'}">${fmt$(noVerifMargin)}</td>
-      <td>${noVerifBlended > 0 ? ((noVerifMargin/noVerifBlended)*100).toFixed(0) : 0}%</td>
-    </tr>
-    <tr>
-      <td>Human baseline</td>
-      <td>${fmt$(hc)}</td>
-      <td class="cell-green">~100%</td>
-      <td class="cell-green">~0%</td>
-      <td class="${clientPrice - hc > 0 ? 'cell-green' : 'cell-red'}">${fmt$(clientPrice - hc)}</td>
-      <td>${((clientPrice-hc)/clientPrice*100).toFixed(0)}%</td>
-    </tr>
-  `;
-
-  // Chart: margin vs correlation at current d
-  const ctx = document.getElementById('aiVerifChart').getContext('2d');
-  const rhoSteps = [];
-  const aiMargins = [];
-  const precisions = [];
-  for (let r = 0; r <= 1.0; r += 0.05) {
-    rhoSteps.push(r.toFixed(2));
-    const ec = d * (1 - r);
-    const pb = 1 - ec;
-    const bp = (ea - 1) * pb;
-    const tp = 1 + bp;
-    const prec = 1 / tp;
-    const cpo = (compTotal + humanVerifTotal * cRatio) / tp;
-    const br = (1 * clientPrice + bp * clientPrice * (1 - rejectRate)) / tp;
-    aiMargins.push(br - cpo);
-    precisions.push(prec * 100);
-  }
-
-  if (aiVerifChartObj) aiVerifChartObj.destroy();
-  aiVerifChartObj = new Chart(ctx, {
-    type: 'line',
-    data: {
-      labels: rhoSteps,
-      datasets: [
-        {
-          label: 'AI verif. margin ($)',
-          data: aiMargins,
-          borderColor: 'rgba(196, 77, 43, 0.9)',
-          backgroundColor: 'rgba(196, 77, 43, 0.1)',
-          fill: true,
-          tension: 0.3,
-          yAxisID: 'y',
-        },
-        {
-          label: 'Precision (%)',
-          data: precisions,
-          borderColor: 'rgba(53, 104, 168, 0.9)',
-          backgroundColor: 'rgba(53, 104, 168, 0.1)',
-          fill: false,
-          tension: 0.3,
-          borderDash: [5, 3],
-          yAxisID: 'y1',
-        },
-        {
-          label: 'Human verif. margin ($)',
-          data: rhoSteps.map(() => humanMargin),
-          borderColor: 'rgba(45, 122, 79, 0.7)',
-          borderDash: [8, 4],
-          pointRadius: 0,
-          yAxisID: 'y',
-        }
-      ]
-    },
-    options: {
-      responsive: true,
-      interaction: { mode: 'index', intersect: false },
-      scales: {
-        x: {
-          title: { display: true, text: 'Correlation (ρ)', font: { family: "'Source Sans 3'" } },
-          ticks: { font: { family: "'JetBrains Mono'", size: 11 } }
-        },
-        y: {
-          title: { display: true, text: 'Margin per output ($)', font: { family: "'Source Sans 3'" } },
-          ticks: { font: { family: "'JetBrains Mono'", size: 11 }, callback: v => '$' + v.toLocaleString() },
-          position: 'left',
-        },
-        y1: {
-          title: { display: true, text: 'Precision (%)', font: { family: "'Source Sans 3'" } },
-          ticks: { font: { family: "'JetBrains Mono'", size: 11 }, callback: v => v + '%' },
-          position: 'right',
-          min: 0, max: 100,
-          grid: { drawOnChartArea: false },
-        }
-      },
-      plugins: {
-        legend: { labels: { font: { family: "'Source Sans 3'", size: 12 } } },
-        tooltip: {
-          titleFont: { family: "'Source Sans 3'" },
-          bodyFont: { family: "'JetBrains Mono'", size: 12 },
-        }
-      }
-    }
-  });
-
-  // Insight
-  const marginRatio = humanMargin > 0 ? (aiMargin / humanMargin).toFixed(1) : 'N/A';
-  let aiInsight;
-  if (aiMargin > humanMargin) {
-    aiInsight = `At &rho; = ${rho.toFixed(2)}, AI verification yields <strong>${marginRatio}&times;</strong> the margin of human verification, despite only ${(precision*100).toFixed(0)}% precision. The cost savings from eliminating the human review tax ($${(humanVerifTotal - aiVerifCostTotal).toLocaleString()}) vastly exceed the revenue lost to slip-throughs. This means <strong>the revenue loop does not prevent the switch to AI verification</strong>. Companies are economically rational to make this transition at every correlation level shown. The human-in-the-loop dissolves not through negligence, but through market incentives. Counteracting this requires external enforcement: regulation, liability frameworks, or industry standards.`;
-  } else {
-    aiInsight = `At these settings, human verification produces higher margins. This occurs when the client price is low relative to agent cost, or the rejection rate is very high. In most realistic scenarios, AI verification dominates economically.`;
-  }
-  document.getElementById('aiVerifInsight').innerHTML = `<p>${aiInsight}</p>`;
-}
-
+// ── Tab 2: Self-Sustaining Agent ──
 // ── Tab 2: Self-Sustaining Agent ──
 function renderSelfSustain() {
   const taskHoursArr = [8, 24, 40, 80, 160];
@@ -2169,17 +1911,6 @@ document.getElementById('clientPrice').addEventListener('input', () => {
 document.getElementById('rejectRate').addEventListener('input', () => {
   document.getElementById('rejectRate-val').textContent = parseInt(document.getElementById('rejectRate').value) + '%';
   renderRevenueLoop();
-});
-
-// AI verification sliders
-['aiDetect', 'aiCorr', 'aiVerifCostRatio'].forEach(id => {
-  document.getElementById(id).addEventListener('input', () => {
-    const v = parseFloat(document.getElementById(id).value);
-    if (id === 'aiDetect') document.getElementById(id + '-val').textContent = v.toFixed(2);
-    else if (id === 'aiCorr') document.getElementById(id + '-val').textContent = v.toFixed(2);
-    else document.getElementById(id + '-val').textContent = v + '%';
-    renderAIVerification();
-  });
 });
 
 // Cohort model sliders
