@@ -365,29 +365,22 @@
     max-height: 360px;
   }
 
-  /* Sensitivity matrix */
-  .sensitivity-table th,
-  .sensitivity-table td {
-    text-align: center;
-    padding: 8px 10px;
-    font-size: 12px;
+
+
+  /* Heatmap */
+  .heatmap-container {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 20px;
+    margin-bottom: 10px;
+    position: relative;
   }
 
-  .sensitivity-table th {
-    text-align: center;
-    padding-left: 12px;
-  }
-
-  .sensitivity-table td:first-child {
-    text-align: right;
-    font-family: var(--mono);
-    font-weight: 500;
-    padding-right: 14px;
-    background: var(--bg-input);
-  }
-
-  .sensitivity-table thead th:first-child {
-    text-align: right;
+  .heatmap-container canvas {
+    display: block;
+    margin: 0 auto;
   }
 
   /* Decomposition section */
@@ -579,6 +572,24 @@
     opacity: 0.4;
     pointer-events: none;
   }
+
+  /* Heatmap legend */
+  .heatmap-legend {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 10px;
+    font-size: 11px;
+    color: var(--text-muted);
+  }
+
+  .heatmap-legend-bar {
+    width: 180px;
+    height: 12px;
+    border-radius: 3px;
+    border: 1px solid var(--border);
+  }
 </style>
 </head>
 <body>
@@ -688,7 +699,6 @@
   <div class="tabs">
     <button class="tab active" data-tab="comparison">Cost comparison</button>
     <button class="tab" data-tab="sensitivity">Sensitivity</button>
-    <button class="tab" data-tab="decomposition">Task decomposition</button>
   </div>
 
   <!-- Tab 1: Cost Comparison -->
@@ -744,59 +754,22 @@
         </div>
       </div>
 
-      <div class="table-wrap">
-        <table class="sensitivity-table" id="sensTable">
-          <thead id="sensTableHead"></thead>
-          <tbody id="sensTableBody"></tbody>
-        </table>
+      <div class="heatmap-container">
+        <canvas id="heatmapCanvas" width="600" height="360"></canvas>
+        <div class="heatmap-legend">
+          <span>Agent cheaper</span>
+          <canvas id="heatmapLegend" width="180" height="12" class="heatmap-legend-bar"></canvas>
+          <span>Human cheaper</span>
+        </div>
       </div>
-      <div class="table-note">Values are (agent cost + verification) / human cost. Green: agent cheaper. Red: human cheaper. Each cell uses the current steps/hr and human rate settings.</div>
+      <div class="table-note">Each cell shows (agent cost + verification) / human cost. Moving vertically (T₅₀) changes the ratio far more than moving horizontally ($/step). T₅₀ enters the exponent; cost per step is a linear multiplier.</div>
+
+
 
       <div class="insight" id="sensInsight"></div>
     </div>
   </div>
 
-  <!-- Tab 3: Decomposition -->
-  <div class="tab-content" id="tab-decomposition">
-    <div class="section">
-      <div class="section-label">Task decomposition</div>
-      <h2>Can You Break It Up?</h2>
-      <p>Splitting a long task into shorter chunks keeps each chunk in the high-success zone. But each handoff costs coordination overhead and loses context.</p>
-
-      <div class="decomp-controls">
-        <div class="decomp-control">
-          <label>Total task length (hours)</label>
-          <div class="slider-row">
-            <input type="range" id="decompTotal" min="4" max="80" step="1" value="24">
-            <span class="slider-value" id="decompTotal-val">24h</span>
-          </div>
-        </div>
-        <div class="decomp-control">
-          <label>Number of chunks</label>
-          <div class="slider-row">
-            <input type="range" id="decompChunks" min="1" max="24" step="1" value="1">
-            <span class="slider-value" id="decompChunks-val">1</span>
-          </div>
-        </div>
-        <div class="decomp-control">
-          <label>Handoff overhead <span class="unit">(% of human hr rate)</span></label>
-          <div class="slider-row">
-            <input type="range" id="decompOverhead" min="0" max="40" step="1" value="10">
-            <span class="slider-value" id="decompOverhead-val">10%</span>
-          </div>
-        </div>
-      </div>
-
-      <div class="decomp-results" id="decompResults"></div>
-
-      <div class="chart-container">
-        <canvas id="decompChart"></canvas>
-      </div>
-      <div class="table-note">Shows total agent cost as you vary the number of chunks. The minimum is the sweet spot balancing reliability gains against coordination overhead.</div>
-
-      <div class="insight" id="decompInsight"></div>
-    </div>
-  </div>
 <div class="divider"></div>
 
 <div class="section">
@@ -820,7 +793,7 @@ const params = {
   humanRate: 150,
   weibullK: 0.70,
   verifCost: 0,
-  model: 'exponential', // 'exponential' or 'weibull'
+  model: 'exponential',
 };
 
 const presets = {
@@ -869,9 +842,6 @@ function pSuccess(taskHours) {
   const t50 = params.halfLife;
   if (params.model === 'weibull') {
     const k = params.weibullK;
-    // Weibull survival: S(t) = exp(-(t/lambda)^k)
-    // Calibrate lambda so S(t50) = 0.5:
-    // 0.5 = exp(-(t50/lambda)^k) => lambda = t50 / (ln(2))^(1/k)
     const lambda = t50 / Math.pow(Math.LN2, 1 / k);
     return Math.exp(-Math.pow(taskHours / lambda, k));
   } else {
@@ -886,7 +856,6 @@ function computeRow(taskHours) {
   const pS = pSuccess(taskHours);
   const eAttempts = 1 / pS;
   const agentCostRaw = costPerAttempt * eAttempts;
-  // Verification cost: human reviews each attempt
   const verifPerAttempt = (params.verifCost / 100) * params.humanRate * Math.min(taskHours, 4);
   const totalVerifCost = verifPerAttempt * eAttempts;
   const agentCost = agentCostRaw + totalVerifCost;
@@ -895,7 +864,6 @@ function computeRow(taskHours) {
   return { taskHours, steps, costPerAttempt, pSuccess: pS, eAttempts, agentCostRaw, totalVerifCost, agentCost, humanCost, ratio };
 }
 
-// Compute using the OTHER model for comparison
 function computeRowAlt(taskHours) {
   const savedModel = params.model;
   params.model = savedModel === 'exponential' ? 'weibull' : 'exponential';
@@ -904,11 +872,43 @@ function computeRowAlt(taskHours) {
   return row;
 }
 
+// ── Heatmap colour ──
+function ratioToColor(ratio, alpha) {
+  // Log-scale mapping: 0.1x = deep green, 1x = neutral, 10x = deep red
+  const logR = Math.log10(Math.max(0.01, Math.min(1000, ratio)));
+  // Map [-1, 1] to [0, 1] (green to red)
+  const t = Math.min(1, Math.max(0, (logR + 1) / 2));
+  let r, g, b;
+  if (t < 0.5) {
+    // Green to warm yellow
+    const s = t * 2;
+    r = Math.round(34 + (245 - 34) * s);
+    g = Math.round(139 + (196 - 139) * s);
+    b = Math.round(84 + (64 - 84) * s);
+  } else {
+    // Warm yellow to red
+    const s = (t - 0.5) * 2;
+    r = Math.round(245 + (196 - 245) * s);
+    g = Math.round(196 + (60 - 196) * s);
+    b = Math.round(64 + (43 - 64) * s);
+  }
+  const a = alpha !== undefined ? alpha : 1;
+  return `rgba(${r}, ${g}, ${b}, ${a})`;
+}
+
+function ratioToTextColor(ratio) {
+  const logR = Math.log10(Math.max(0.01, Math.min(1000, ratio)));
+  const t = Math.min(1, Math.max(0, (logR + 1) / 2));
+  // Dark text on light backgrounds, light text on saturated backgrounds
+  if (t < 0.15 || t > 0.85) return '#ffffff';
+  return '#2c2a25';
+}
+
 // ── Rendering ──
 const taskHoursList = [0.25, 0.5, 1, 2, 4, 8, 16, 24, 40, 80];
 const taskLabels = ['15 min', '30 min', '1h', '2h', '4h', '8h', '16h', '24h', '1 week', '2 weeks'];
 
-let mainChart, decompChart;
+let mainChart;
 
 function ratioClass(r) {
   if (r < 0.6) return 'cell-green';
@@ -936,7 +936,6 @@ function renderMainTable() {
     </tr>`;
   }).join('');
 
-  // Main insight
   const insight = document.getElementById('mainInsight');
   const modelLabel = params.model === 'weibull' ? `Weibull (\u03ba=${params.weibullK})` : 'exponential';
   if (crossIdx === -1) {
@@ -950,7 +949,6 @@ function renderMainTable() {
     insight.innerHTML = `<p>The crossover hits at roughly <strong>${label}</strong>. Below this, agents are ${fmtRatio(1 / prevRatio).replace('\u00d7', '')}x cheaper. Above it, costs ${params.model === 'weibull' ? 'grow steadily' : 'explode'}: at ${taskLabels[futureIdx]}, the agent costs <strong>${fmtRatio(rows[futureIdx].ratio)}</strong> the human rate. ${params.model === 'weibull' ? 'Under the Weibull model this growth is a stretched exponential rather than a true exponential, making the wall gentler.' : 'This is the half-life tax.'}</p>`;
   }
 
-  // Model comparison insight
   const compareInsight = document.getElementById('modelCompareInsight');
   const altRows = taskHoursList.map(h => computeRowAlt(h));
   const altLabel = params.model === 'exponential' ? `Weibull (\u03ba=${params.weibullK})` : 'exponential';
@@ -960,7 +958,6 @@ function renderMainTable() {
 
   if (Math.abs(curRatio - altRatio) > 0.1) {
     compareInsight.style.display = 'block';
-    const betterModel = curRatio < altRatio ? params.model : (params.model === 'exponential' ? 'weibull' : 'exponential');
     compareInsight.innerHTML = `<p><strong>Model comparison at ${taskLabels[compareIdx]}:</strong> The ${modelLabel} model gives a ratio of ${fmtRatio(curRatio)}, while the ${altLabel} model gives ${fmtRatio(altRatio)}. ${params.model === 'weibull' ? 'The fatter tail of the Weibull survival function means fewer expected attempts, making agents significantly more competitive on longer tasks. But if verification cost is high, this advantage narrows because each attempt still requires human review.' : 'Under the Weibull alternative, the picture is more favourable for agents because the fatter survival tail means fewer retries are needed.'}</p>`;
   } else {
     compareInsight.style.display = 'none';
@@ -979,7 +976,6 @@ function renderMainChart() {
   });
   const humanData = chartHours.map(h => ({ x: h, y: params.humanRate * h }));
 
-  // Also compute the alt model for comparison line
   const altData = chartHours.map(h => {
     const r = computeRowAlt(h);
     return { x: h, y: r.agentCost };
@@ -1078,21 +1074,43 @@ function renderMainChart() {
   });
 }
 
-function renderSensitivity() {
+function renderHeatmap() {
+  const canvas = document.getElementById('heatmapCanvas');
+  const ctx = canvas.getContext('2d');
+  const dpr = window.devicePixelRatio || 1;
+
   const taskH = parseFloat(document.getElementById('sensTaskHours').value);
   const halfLives = [1, 2, 5, 12, 40];
   const costs = [0.01, 0.05, 0.10, 0.25, 0.50, 1.00];
 
-  const thead = document.getElementById('sensTableHead');
-  thead.innerHTML = `<tr><th>T<sub>50</sub> \u2193 &nbsp;$/step \u2192</th>${costs.map(c => `<th>${fmt$(c)}</th>`).join('')}</tr>`;
+  // Layout
+  const marginLeft = 72;
+  const marginRight = 20;
+  const marginTop = 24;
+  const marginBottom = 52;
+  const logicalW = 600;
+  const logicalH = 340;
 
-  const tbody = document.getElementById('sensTableBody');
-  tbody.innerHTML = halfLives.map(hl => {
-    const cells = costs.map(c => {
+  canvas.style.width = logicalW + 'px';
+  canvas.style.height = logicalH + 'px';
+  canvas.width = logicalW * dpr;
+  canvas.height = logicalH * dpr;
+  ctx.scale(dpr, dpr);
+
+  const plotW = logicalW - marginLeft - marginRight;
+  const plotH = logicalH - marginTop - marginBottom;
+  const cellW = plotW / costs.length;
+  const cellH = plotH / halfLives.length;
+
+  ctx.clearRect(0, 0, logicalW, logicalH);
+
+  // Compute ratios
+  const ratios = [];
+  halfLives.forEach((hl, row) => {
+    ratios[row] = [];
+    costs.forEach((c, col) => {
       const steps = params.stepsPerHr * taskH;
       const cm = contextMultiplier(steps);
-      const costAttempt = steps * c * cm;
-      // Use current survival model
       const savedHL = params.halfLife;
       const savedCPS = params.costPerStep;
       params.halfLife = hl;
@@ -1100,21 +1118,150 @@ function renderSensitivity() {
       const pS = pSuccess(taskH);
       const eAtt = 1 / pS;
       const verifPerAttempt = (params.verifCost / 100) * params.humanRate * Math.min(taskH, 4);
-      const aCost = costAttempt * eAtt + verifPerAttempt * eAtt;
+      const aCost = steps * c * cm * eAtt + verifPerAttempt * eAtt;
       params.halfLife = savedHL;
       params.costPerStep = savedCPS;
       const hCost = params.humanRate * taskH;
-      const ratio = aCost / hCost;
-      const cls = ratioClass(ratio);
-      return `<td class="${cls}">${fmtRatio(ratio)}</td>`;
-    }).join('');
-    return `<tr><td>${hl}h</td>${cells}</tr>`;
-  }).join('');
+      ratios[row][col] = aCost / hCost;
+    });
+  });
+
+  // Draw cells
+  halfLives.forEach((hl, row) => {
+    costs.forEach((c, col) => {
+      const x = marginLeft + col * cellW;
+      const y = marginTop + row * cellH;
+      const ratio = ratios[row][col];
+
+      // Cell background
+      ctx.fillStyle = ratioToColor(ratio, 0.82);
+      ctx.fillRect(x, y, cellW, cellH);
+
+      // Cell border
+      ctx.strokeStyle = 'rgba(255,255,255,0.6)';
+      ctx.lineWidth = 1.5;
+      ctx.strokeRect(x, y, cellW, cellH);
+
+      // Cell text
+      ctx.fillStyle = ratioToTextColor(ratio);
+      ctx.font = '600 12px "JetBrains Mono"';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(fmtRatio(ratio), x + cellW / 2, y + cellH / 2);
+    });
+  });
+
+  // Y-axis labels (T₅₀)
+  ctx.fillStyle = '#6b6860';
+  ctx.font = '500 11px "Source Sans 3"';
+  ctx.textAlign = 'center';
+  ctx.save();
+  ctx.translate(14, marginTop + plotH / 2);
+  ctx.rotate(-Math.PI / 2);
+  ctx.fillText('T\u2085\u2080 (hours)', 0, 0);
+  ctx.restore();
+
+  ctx.font = '500 12px "JetBrains Mono"';
+  ctx.textAlign = 'right';
+  ctx.textBaseline = 'middle';
+  halfLives.forEach((hl, row) => {
+    const y = marginTop + row * cellH + cellH / 2;
+    ctx.fillStyle = '#2c2a25';
+    ctx.fillText(hl + 'h', marginLeft - 10, y);
+  });
+
+  // X-axis labels ($/step)
+  ctx.fillStyle = '#6b6860';
+  ctx.font = '500 11px "Source Sans 3"';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'top';
+  ctx.fillText('Cost per step (USD)', marginLeft + plotW / 2, logicalH - 14);
+
+  ctx.font = '500 12px "JetBrains Mono"';
+  ctx.textBaseline = 'top';
+  costs.forEach((c, col) => {
+    const x = marginLeft + col * cellW + cellW / 2;
+    ctx.fillStyle = '#2c2a25';
+    ctx.fillText('$' + (c < 0.1 ? c.toFixed(2) : c.toFixed(2)), x, marginTop + plotH + 8);
+  });
+
+  // Draw 1.0x contour line (approximate)
+  ctx.strokeStyle = '#2c2a25';
+  ctx.lineWidth = 2;
+  ctx.setLineDash([5, 3]);
+  ctx.beginPath();
+  let started = false;
+  costs.forEach((c, col) => {
+    // Find the row where ratio crosses 1.0 by interpolation
+    let crossY = null;
+    for (let row = 0; row < halfLives.length - 1; row++) {
+      const r1 = ratios[row][col];
+      const r2 = ratios[row + 1][col];
+      if ((r1 >= 1 && r2 < 1) || (r1 < 1 && r2 >= 1)) {
+        // Linear interpolation in log space
+        const logR1 = Math.log(r1);
+        const logR2 = Math.log(r2);
+        const frac = (0 - logR1) / (logR2 - logR1);
+        crossY = marginTop + (row + frac) * cellH;
+        break;
+      }
+    }
+    if (crossY !== null) {
+      const x = marginLeft + col * cellW + cellW / 2;
+      if (!started) { ctx.moveTo(x, crossY); started = true; }
+      else ctx.lineTo(x, crossY);
+    }
+  });
+  if (started) ctx.stroke();
+  ctx.setLineDash([]);
+
+  // Contour label
+  if (started) {
+    ctx.fillStyle = '#2c2a25';
+    ctx.font = '600 10px "Source Sans 3"';
+    ctx.textAlign = 'left';
+    // Place near right edge
+    const lastCol = costs.length - 1;
+    let lastCrossY = null;
+    for (let row = 0; row < halfLives.length - 1; row++) {
+      const r1 = ratios[row][lastCol];
+      const r2 = ratios[row + 1][lastCol];
+      if ((r1 >= 1 && r2 < 1) || (r1 < 1 && r2 >= 1)) {
+        const logR1 = Math.log(r1);
+        const logR2 = Math.log(r2);
+        const frac = (0 - logR1) / (logR2 - logR1);
+        lastCrossY = marginTop + (row + frac) * cellH;
+        break;
+      }
+    }
+    if (lastCrossY !== null) {
+      ctx.fillText('1.0\u00d7', marginLeft + plotW + 4, lastCrossY - 5);
+    }
+  }
+
+  // Render legend gradient
+  const legendCanvas = document.getElementById('heatmapLegend');
+  const lctx = legendCanvas.getContext('2d');
+  const ldpr = window.devicePixelRatio || 1;
+  legendCanvas.width = 180 * ldpr;
+  legendCanvas.height = 12 * ldpr;
+  lctx.scale(ldpr, ldpr);
+  for (let i = 0; i < 180; i++) {
+    const ratio = Math.pow(10, -1 + (i / 180) * 2); // 0.1x to 10x
+    lctx.fillStyle = ratioToColor(ratio, 0.82);
+    lctx.fillRect(i, 0, 1, 12);
+  }
+}
+
+function renderSensitivity() {
+  const taskH = parseFloat(document.getElementById('sensTaskHours').value);
+  const halfLives = [1, 2, 5, 12, 40];
+  const costs = [0.01, 0.05, 0.10, 0.25, 0.50, 1.00];
+
+  // Render heatmap
+  renderHeatmap();
 
   // Insight
-  const midCostIdx = 3; // $0.25
-  const cheapCostIdx = 0; // $0.01
-
   function getRatio(hl, costIdx) {
     const s = params.stepsPerHr * taskH;
     const cm = contextMultiplier(s);
@@ -1127,9 +1274,9 @@ function renderSensitivity() {
     return (s * costs[costIdx] * cm * eAtt + verifPerAttempt * eAtt) / (params.humanRate * taskH);
   }
 
-  const r_hl1_mid = getRatio(1, midCostIdx);
-  const r_hl5_mid = getRatio(5, midCostIdx);
-  const r_hl1_cheap = getRatio(1, cheapCostIdx);
+  const r_hl1_mid = getRatio(1, 3);
+  const r_hl5_mid = getRatio(5, 3);
+  const r_hl1_cheap = getRatio(1, 0);
 
   const hlImprovement = r_hl1_mid / r_hl5_mid;
   const costImprovement = r_hl1_mid / r_hl1_cheap;
@@ -1140,127 +1287,6 @@ function renderSensitivity() {
     : '';
 
   document.getElementById('sensInsight').innerHTML = `<p>For a <strong>${taskH}h task</strong> at $0.25/step: improving T<sub>50</sub> from 1h to 5h improves the ratio by <strong>${hlImprovement.toFixed(0)}\u00d7</strong>. Cutting cost from $0.25 to $0.01 (a 25\u00d7 reduction) improves it by <strong>${costImprovement.toFixed(0)}\u00d7</strong>. The half-life improvement is <strong>${relValue.toFixed(0)}\u00d7 more valuable</strong> than the cost reduction.${modelNote}</p>`;
-}
-
-function renderDecomposition() {
-  const totalHours = parseFloat(document.getElementById('decompTotal').value);
-  const nChunks = parseInt(document.getElementById('decompChunks').value);
-  const overheadPct = parseFloat(document.getElementById('decompOverhead').value) / 100;
-
-  const chunkHours = totalHours / nChunks;
-  const handoffCost = (nChunks - 1) * overheadPct * params.humanRate;
-  const chunkRow = computeRow(chunkHours);
-  const totalAgentCost = chunkRow.agentCost * nChunks + handoffCost;
-  const humanCost = params.humanRate * totalHours;
-  const monoRow = computeRow(totalHours);
-
-  const results = document.getElementById('decompResults');
-  const monoRatio = monoRow.ratio;
-  const decompRatio = totalAgentCost / humanCost;
-
-  results.innerHTML = `
-    <div class="metric-card">
-      <div class="metric-label">Monolithic</div>
-      <div class="metric-value ${ratioClass(monoRatio)}">${fmtRatio(monoRatio)}</div>
-      <div class="metric-sub">${fmt$(monoRow.agentCost)} agent &middot; ${fmt$(humanCost)} human</div>
-    </div>
-    <div class="metric-card">
-      <div class="metric-label">${nChunks} chunks &times; ${chunkHours.toFixed(1)}h</div>
-      <div class="metric-value ${ratioClass(decompRatio)}">${fmtRatio(decompRatio)}</div>
-      <div class="metric-sub">${fmt$(totalAgentCost)} agent &middot; ${fmt$(humanCost)} human</div>
-    </div>
-    <div class="metric-card">
-      <div class="metric-label">Chunk P(success)</div>
-      <div class="metric-value" style="color: var(--blue)">${fmtPct(chunkRow.pSuccess)}</div>
-      <div class="metric-sub">${fmtAttempts(chunkRow.eAttempts)} attempts/chunk &middot; ${fmt$(handoffCost)} overhead</div>
-    </div>
-  `;
-
-  // Decomp chart
-  const ctx = document.getElementById('decompChart').getContext('2d');
-  const maxChunks = Math.min(Math.ceil(totalHours / 0.5), 48);
-  const chunkRange = [];
-  for (let n = 1; n <= maxChunks; n++) chunkRange.push(n);
-
-  const decompData = chunkRange.map(n => {
-    const ch = totalHours / n;
-    const cr = computeRow(ch);
-    const ho = (n - 1) * overheadPct * params.humanRate;
-    return { x: n, y: cr.agentCost * n + ho };
-  });
-
-  if (decompChart) decompChart.destroy();
-
-  decompChart = new Chart(ctx, {
-    type: 'line',
-    data: {
-      datasets: [
-        {
-          label: 'Total agent cost',
-          data: decompData,
-          borderColor: '#c44d2b',
-          backgroundColor: 'rgba(196, 77, 43, 0.08)',
-          fill: true,
-          tension: 0.3,
-          pointRadius: 0,
-          borderWidth: 2.5,
-        },
-        {
-          label: 'Human cost',
-          data: chunkRange.map(n => ({ x: n, y: humanCost })),
-          borderColor: '#3568a8',
-          borderWidth: 2,
-          borderDash: [6, 3],
-          pointRadius: 0,
-        }
-      ]
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: true,
-      aspectRatio: 2.2,
-      interaction: { mode: 'index', intersect: false },
-      scales: {
-        x: {
-          type: 'linear',
-          title: { display: true, text: 'Number of chunks', font: { family: "'Source Sans 3'", size: 12 }, color: '#6b6860' },
-          ticks: { font: { family: "'JetBrains Mono'", size: 10 }, color: '#9a958a' },
-          grid: { color: '#e2ddd4' },
-        },
-        y: {
-          type: 'logarithmic',
-          title: { display: true, text: 'Total cost (USD)', font: { family: "'Source Sans 3'", size: 12 }, color: '#6b6860' },
-          ticks: {
-            callback: function(val) { return fmt$(val); },
-            font: { family: "'JetBrains Mono'", size: 10 },
-            color: '#9a958a',
-          },
-          grid: { color: '#e2ddd4' },
-        }
-      },
-      plugins: {
-        legend: {
-          labels: { font: { family: "'Source Sans 3'", size: 12 }, color: '#2c2a25', usePointStyle: true, pointStyle: 'line', padding: 20 },
-        },
-        tooltip: {
-          callbacks: {
-            title: (items) => `${items[0].raw.x} chunk${items[0].raw.x > 1 ? 's' : ''} (${(totalHours / items[0].raw.x).toFixed(1)}h each)`,
-            label: (item) => ` ${item.dataset.label}: ${fmt$(item.raw.y)}`
-          },
-          titleFont: { family: "'Source Sans 3'" },
-          bodyFont: { family: "'JetBrains Mono'", size: 12 },
-        }
-      }
-    }
-  });
-
-  // Find optimal
-  let minCost = Infinity, optN = 1;
-  decompData.forEach(d => { if (d.y < minCost) { minCost = d.y; optN = d.x; } });
-  const optChunkH = totalHours / optN;
-  const optRatio = minCost / humanCost;
-
-  document.getElementById('decompInsight').innerHTML = `<p>For a <strong>${totalHours}h task</strong> with ${overheadPct * 100}% handoff overhead, the sweet spot is <strong>${optN} chunk${optN > 1 ? 's' : ''}</strong> of ~${optChunkH.toFixed(1)}h each, bringing the ratio to <strong>${fmtRatio(optRatio)}</strong>. ${optRatio < 1 ? 'Decomposition makes agents viable here.' : optRatio < 2 ? 'Close to break-even, but decomposition has limits.' : 'Even with optimal decomposition, agents are significantly more expensive than humans for this task length.'}</p>`;
 }
 
 function updateEquationBox() {
@@ -1301,7 +1327,6 @@ function renderAll() {
   renderMainTable();
   renderMainChart();
   renderSensitivity();
-  renderDecomposition();
 }
 
 // ── Model toggle ──
@@ -1345,14 +1370,8 @@ wireSlider('humanRate', 'humanRate', v => '$' + v.toFixed(0));
 wireSlider('weibullK', 'weibullK', v => v.toFixed(2));
 wireSlider('verifCost', 'verifCost', v => v + '%');
 wireSlider('sensTaskHours', null, v => v + 'h');
-wireSlider('decompTotal', null, v => v + 'h');
-wireSlider('decompChunks', null, v => v.toFixed(0));
-wireSlider('decompOverhead', null, v => v + '%');
 
 document.getElementById('sensTaskHours').addEventListener('input', renderSensitivity);
-document.getElementById('decompTotal').addEventListener('input', renderDecomposition);
-document.getElementById('decompChunks').addEventListener('input', renderDecomposition);
-document.getElementById('decompOverhead').addEventListener('input', renderDecomposition);
 
 // Presets
 window.applyPreset = function(name) {
@@ -1380,7 +1399,7 @@ document.querySelectorAll('.tab').forEach(tab => {
     document.getElementById('tab-' + tab.dataset.tab).classList.add('active');
     setTimeout(() => {
       if (tab.dataset.tab === 'comparison') renderMainChart();
-      if (tab.dataset.tab === 'decomposition') renderDecomposition();
+      if (tab.dataset.tab === 'sensitivity') renderHeatmap();
     }, 50);
   });
 });
