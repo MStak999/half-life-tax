@@ -106,12 +106,7 @@ footer a{color:var(--text-muted);text-decoration:none;border-bottom:1px solid va
     <div class="section-label">Parameters</div>
     <h2>Shared Assumptions</h2>
     <p>These describe the current frontier. Adjust to explore different capability levels.</p>
-    <div class="presets">
-      <button class="preset-btn active" onclick="applyPreset('current')">Current frontier (2026)</button>
-      <button class="preset-btn" onclick="applyPreset('late2026')">Late 2026</button>
-      <button class="preset-btn" onclick="applyPreset('2028')">2028 projected</button>
-      <button class="preset-btn" onclick="applyPreset('post_k')">Post-&kappa; breakthrough</button>
-    </div>
+
     <div class="params-grid">
       <div class="param-card"><label>T<sub>50</sub> <span class="unit">(hours)</span></label><div class="slider-row"><input type="range" id="t50" min="1" max="200" step="1" value="5"><span class="slider-value" id="t50-val">5h</span></div><div class="param-hint">Task length at which the agent succeeds 50% of the time. Currently ~2.5&ndash;5h for frontier models.</div></div>
       <div class="param-card"><label>Weibull &kappa; <span class="unit">(shape)</span></label><div class="slider-row"><input type="range" id="kappa" min="0.30" max="1.00" step="0.01" value="0.70"><span class="slider-value" id="kappa-val">0.70</span></div><div class="param-hint">&kappa;=1 is exponential. SOTA &asymp;0.6&ndash;0.9. Humans &asymp;0.37. Does not improve with scale.</div></div>
@@ -202,7 +197,7 @@ footer a{color:var(--text-muted);text-decoration:none;border-bottom:1px solid va
 
 <script>
 const P={t50:5,kappa:0.70,costStep:0.22,humanRate:150,stepsHr:80,reviewFrac:0.20};
-const presets={current:{t50:5,kappa:0.70,costStep:0.22,humanRate:150,stepsHr:80,reviewFrac:0.20},late2026:{t50:10,kappa:0.70,costStep:0.30,humanRate:150,stepsHr:80,reviewFrac:0.20},'2028':{t50:40,kappa:0.70,costStep:0.50,humanRate:150,stepsHr:80,reviewFrac:0.20},post_k:{t50:40,kappa:0.45,costStep:0.75,humanRate:150,stepsHr:80,reviewFrac:0.20}};
+
 const BK=0.70;
 const Y0=2026+1/12;
 function fmt$(v){if(v>=1e9)return'$'+(v/1e9).toFixed(1)+'B';if(v>=1e6)return'$'+(v/1e6).toFixed(1)+'M';if(v>=1e4)return'$'+(v/1e3).toFixed(1)+'K';if(v>=100)return'$'+v.toFixed(0);if(v>=1)return'$'+v.toFixed(2);return'$'+v.toFixed(3)}
@@ -302,13 +297,12 @@ function renderBubble(){
 
 function renderAll(){renderVerification();renderChain();renderBubble()}
 
-function wireSlider(id,key,fmt){const el=document.getElementById(id),val=document.getElementById(id+'-val');el.addEventListener('input',()=>{P[key]=parseFloat(el.value);val.textContent=fmt(P[key]);document.querySelectorAll('.preset-btn').forEach(b=>b.classList.remove('active'));renderAll()})}
+function wireSlider(id,key,fmt){const el=document.getElementById(id),val=document.getElementById(id+'-val');el.addEventListener('input',()=>{P[key]=parseFloat(el.value);val.textContent=fmt(P[key]);renderAll()})}
 wireSlider('t50','t50',v=>v+'h');wireSlider('kappa','kappa',v=>v.toFixed(2));wireSlider('costStep','costStep',v=>'$'+v.toFixed(v<.1?3:2));wireSlider('humanRate','humanRate',v=>'$'+v.toFixed(0));wireSlider('stepsHr','stepsHr',v=>v.toFixed(0));wireSlider('reviewFrac','reviewFrac',v=>(v*1).toFixed(0)+'%');
 document.getElementById('reviewFrac').addEventListener('input',()=>{P.reviewFrac=parseFloat(document.getElementById('reviewFrac').value)/100});
 document.getElementById('bustYear').addEventListener('input',()=>{const v=parseFloat(document.getElementById('bustYear').value),yr=Math.floor(v),f=v-yr;document.getElementById('bustYear-val').textContent=f<.2?'early '+yr:f<.4?'Q1 '+yr:f<.6?'mid-'+yr:f<.8?'Q3 '+yr:'late '+yr;renderBubble()});
 document.getElementById('postBustDouble').addEventListener('input',()=>{document.getElementById('postBustDouble-val').textContent=parseInt(document.getElementById('postBustDouble').value)+' mo';renderBubble()});
 document.getElementById('costMult').addEventListener('input',()=>{document.getElementById('costMult-val').textContent=parseFloat(document.getElementById('costMult').value).toFixed(1)+'\u00d7';renderBubble()});
-window.applyPreset=function(name){const p=presets[name];Object.assign(P,p);document.getElementById('t50').value=p.t50;document.getElementById('t50-val').textContent=p.t50+'h';document.getElementById('kappa').value=p.kappa;document.getElementById('kappa-val').textContent=p.kappa.toFixed(2);document.getElementById('costStep').value=p.costStep;document.getElementById('costStep-val').textContent='$'+p.costStep.toFixed(p.costStep<.1?3:2);document.getElementById('humanRate').value=p.humanRate;document.getElementById('humanRate-val').textContent='$'+p.humanRate;document.getElementById('stepsHr').value=p.stepsHr;document.getElementById('stepsHr-val').textContent=p.stepsHr;document.getElementById('reviewFrac').value=p.reviewFrac*100;document.getElementById('reviewFrac-val').textContent=(p.reviewFrac*100).toFixed(0)+'%';document.querySelectorAll('.preset-btn').forEach(b=>b.classList.remove('active'));const btn=document.querySelector(`.preset-btn[onclick="applyPreset('${name}')"]`);if(btn)btn.classList.add('active');renderAll()};
 document.querySelectorAll('.tab').forEach(tab=>{tab.addEventListener('click',()=>{document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));document.querySelectorAll('.tab-content').forEach(c=>c.classList.remove('active'));tab.classList.add('active');document.getElementById('tab-'+tab.dataset.tab).classList.add('active');setTimeout(renderAll,50)})});
 renderAll();
 </script>
