@@ -257,7 +257,7 @@ function renderChain(){
   document.getElementById('chainInsight').innerHTML=`<p>${msg}</p>`;
 }
 
-function t50At(y,bY,b50,pd){const mo=(y-2026)*12;if(mo<=0)return b50;const bm=(bY-2026)*12;if(mo<=bm)return b50*Math.pow(2,mo/7);return b50*Math.pow(2,bm/7)*Math.pow(2,(mo-bm)/pd)}
+const Y0=2026+1/12;function t50At(y,bY,b50,pd){const mo=(y-Y0)*12;if(mo<=0)return b50;const bm=(bY-Y0)*12;
 function yL(y){if(!y)return'Never (by 2035)';const yr=Math.floor(y),mo=Math.round((y-yr)*12);return['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][Math.min(mo,11)]+' '+yr}
 function dL(b,bu){if(!bu)return'Indefinite';if(!b)return'n/a';const m=Math.round((bu-b)*12);return m<=0?'None':m+' months'}
 
