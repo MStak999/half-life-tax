@@ -204,6 +204,7 @@ footer a{color:var(--text-muted);text-decoration:none;border-bottom:1px solid va
 const P={t50:5,kappa:0.70,costStep:0.22,humanRate:150,stepsHr:80,reviewFrac:0.20};
 const presets={current:{t50:5,kappa:0.70,costStep:0.22,humanRate:150,stepsHr:80,reviewFrac:0.20},late2026:{t50:10,kappa:0.70,costStep:0.30,humanRate:150,stepsHr:80,reviewFrac:0.20},'2028':{t50:40,kappa:0.70,costStep:0.50,humanRate:150,stepsHr:80,reviewFrac:0.20},post_k:{t50:40,kappa:0.45,costStep:0.75,humanRate:150,stepsHr:80,reviewFrac:0.20}};
 const BK=0.70;
+const Y0=2026+1/12;
 function fmt$(v){if(v>=1e9)return'$'+(v/1e9).toFixed(1)+'B';if(v>=1e6)return'$'+(v/1e6).toFixed(1)+'M';if(v>=1e4)return'$'+(v/1e3).toFixed(1)+'K';if(v>=100)return'$'+v.toFixed(0);if(v>=1)return'$'+v.toFixed(2);return'$'+v.toFixed(3)}
 function fP(v){if(v>=.995)return'>99%';if(v>=.1)return(v*100).toFixed(1)+'%';if(v>=.001)return(v*100).toFixed(2)+'%';if(v>=1e-5)return(v*100).toFixed(4)+'%';return'~0%'}
 function fR(v){if(v>=1000)return v.toFixed(0)+'\u00d7';if(v>=10)return v.toFixed(1)+'\u00d7';return v.toFixed(2)+'\u00d7'}
@@ -257,7 +258,7 @@ function renderChain(){
   document.getElementById('chainInsight').innerHTML=`<p>${msg}</p>`;
 }
 
-const Y0=2026+1/12;function t50At(y,bY,b50,pd){const mo=(y-Y0)*12;if(mo<=0)return b50;const bm=(bY-Y0)*12;
+function t50At(y,bY,b50,pd){const mo=(y-Y0)*12;if(mo<=0)return b50;const bm=(bY-Y0)*12;if(mo<=bm)return b50*Math.pow(2,mo/7);return b50*Math.pow(2,bm/7)*Math.pow(2,(mo-bm)/pd)}
 function yL(y){if(!y)return'Never (by 2035)';const yr=Math.floor(y),mo=Math.round((y-yr)*12);return['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][Math.min(mo,11)]+' '+yr}
 function dL(b,bu){if(!bu)return'Indefinite';if(!b)return'n/a';const m=Math.round((bu-b)*12);return m<=0?'None':m+' months'}
 
